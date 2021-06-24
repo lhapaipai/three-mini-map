@@ -1,0 +1,19 @@
+{
+  "name": "exemple-01",
+  "version": "0.0.0",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "serve": "vite preview"
+  },
+  "dependencies": {
+    "@mapbox/sphericalmercator": "^1.1.0",
+    "@mapbox/tile-cover": "^3.0.2",
+    "@turf/destination": "^6.4.0",
+    "@turf/helpers": "^6.4.0",
+    "three": "^0.127.0"
+  },
+  "devDependencies": {
+    "vite": "^2.3.8"
+  }
+}
