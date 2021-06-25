@@ -47,10 +47,10 @@ def main():
         url = "https://wmts5.geo.admin.ch/1.0.0/ch.swisstopo.swissimage/default/current/3857/{0}/{1}/{2}.jpeg"
         export_path = "swiss-satellite/{0}/{1}/{2}.jpeg"
     elif args.template == 'ign25':
-        url = "https://wxs.ign.fr/an7nvfzojv5wa96dsga5nk8w/wmts?layer=GEOGRAPHICALGRIDSYSTEMS.MAPS.SCAN25TOUR&style=normal&tilematrixset=PM&Service=WMTS&Request=GetTile&Version=1.0.0&Format=image/jpeg&TileMatrix={0}&TileCol={1}&TileRow={2}"
+        url = "https://wxs.ign.fr/{3}/wmts?layer=GEOGRAPHICALGRIDSYSTEMS.MAPS.SCAN25TOUR&style=normal&tilematrixset=PM&Service=WMTS&Request=GetTile&Version=1.0.0&Format=image/jpeg&TileMatrix={0}&TileCol={1}&TileRow={2}"
         export_path = "ign-25/{0}/{1}/{2}.jpg"
     elif args.template == 'ignsatellite':
-        url = "https://wxs.ign.fr/an7nvfzojv5wa96dsga5nk8w/wmts?layer=ORTHOIMAGERY.ORTHOPHOTOS&style=normal&tilematrixset=PM&Service=WMTS&Request=GetTile&Version=1.0.0&Format=image/jpeg&TileMatrix={0}&TileCol={1}&TileRow={2}"
+        url = "https://wxs.ign.fr/{3}/wmts?layer=ORTHOIMAGERY.ORTHOPHOTOS&style=normal&tilematrixset=PM&Service=WMTS&Request=GetTile&Version=1.0.0&Format=image/jpeg&TileMatrix={0}&TileCol={1}&TileRow={2}"
         export_path = "ign-satellite/{0}/{1}/{2}.jpg"
     else:
         parser.error("template undefined")

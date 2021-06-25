@@ -104,7 +104,7 @@ export default class ElevationManager {
 
   getDataFromTile(elevationTile, tilesToFetch, neighboursStr, cb) {
     let tilesToFetchStr = tilesToFetch.map((t) => Utils.array2str(t));
-    console.log("getDataFromTile", elevationTile, tilesToFetchStr);
+    // console.log("getDataFromTile", elevationTile, tilesToFetchStr);
     let url = this.config.url(...elevationTile, this.config.token);
 
     let idCase2tile = [];
@@ -122,7 +122,7 @@ export default class ElevationManager {
 
     getPixels(url, (err, data, dimensions) => {
       if (err) console.error(err);
-      console.log(url, data, dimensions);
+      // console.log(url, data, dimensions);
       let elevationTiles = [];
       let counter;
       idCase2tile.forEach((tileStr, idCase) => {

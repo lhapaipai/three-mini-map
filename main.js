@@ -12,7 +12,7 @@ import {
 } from "./helpers/guiHelpers";
 import * as THREE from "three";
 import "./style.css";
-import ThreeGeo from "./src/ThreeGeo";
+import ThreeMapManager from "./src/ThreeMapManager";
 
 class App {
   constructor(selector) {
@@ -46,20 +46,27 @@ class App {
     // );
     // this.scene.add(mesh);
 
-    const threeGeo = new ThreeGeo({
-      // apiTexture: "osm",
-      // textureZoom: 11,
-      // apiElevation: "terrarium",
-      // tileSegments: 128, // doit être un diviseur de la taille de la tuile élévation
-      // zScale: 0.05,
-      // distanceFromCenter: 5,
-      // center: [6.4751, 46.1024],
-      onReady: this.requestRender,
-    });
-    let map = await threeGeo.getMap();
-    this.scene.add(map);
+    const marignierMapConfig = {
+      apiTexture: "localIgn25",
+      textureZoom: 15,
+      center: [6.4751, 46.1024],
+      distanceFromCenter: 14,
+    };
+    const combinsMapConfig = {
+      apiTexture: "localSwiss25",
+      textureZoom: 15,
+      center: [7.2545, 45.9819],
+      distanceFromCenter: 14,
+    };
 
-    this.requestRender();
+    const threeGeo = new ThreeMapManager({
+      apiElevation: "localElevation",
+      zScaleFactor: 1.6,
+      tileUnits: 1.0,
+    });
+    threeGeo.addEventListener("dispose", this.requestRender);
+    let map = await threeGeo.getMap(marignierMapConfig);
+    this.scene.add(map);
   }
 
   initListeners() {

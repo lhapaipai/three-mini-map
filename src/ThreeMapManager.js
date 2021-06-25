@@ -5,40 +5,40 @@ import cover from "@mapbox/tile-cover";
 import urls from "./urls";
 import * as THREE from "three";
 
-export default class ThreeGeo {
+export default class ThreeMapManager extends THREE.EventDispatcher {
   constructor(config) {
-    this.onReady = config.onReady;
-    delete config.onReady;
+    super();
 
     const defaultConfig = {
-      // apiTexture: "localIgn25",
-      apiTexture: "ign25",
-      textureZoom: 15,
       apiElevation: "localElevation",
-      tileSegments: 32, // doit être une puissance de 2
       zScaleFactor: 1.6,
-      distanceFromCenter: 1, // distance en km
-      center: [6.4751, 46.1024],
       tileUnits: 1.0,
     };
-    // const defaultConfig = {
-    //   apiTexture: "localSwiss25",
-    //   textureZoom: 15,
-    //   apiElevation: "localElevation",
-    //   tileSegments: 32, // doit être une puissance de 2
-    //   zScaleFactor: 1.6,
-    //   distanceFromCenter: 14, // distance en km
-    //   center: [7.2545, 45.9819],
-    //   tileUnits: 1.0,
-    // };
     this.config = Object.assign({}, defaultConfig, config);
-    this.scale =
-      (this.config.tileUnits * Math.pow(2, this.config.textureZoom)) / 40075016;
-    console.log("scale", this.scale);
-    let { textureZoom, tileSegments } = this.config;
 
     this.apiElevationConfig = urls[this.config.apiElevation];
-    this.apiTextureConfig = urls[this.config.apiTexture];
+
+    this.loadManager = new THREE.LoadingManager();
+    this.textureLoader = new THREE.TextureLoader(this.loadManager);
+  }
+
+  getZScale() {
+    return this.scale * this.config.zScaleFactor;
+  }
+
+  async getMap(mapConfig) {
+    const mapDefaultConfig = {
+      apiTexture: "localOSM",
+      tileSegments: 32, // doit être une puissance de 2
+      textureZoom: 15,
+      center: [6.4751, 46.1024],
+      distanceFromCenter: 1, // distance en km
+    };
+    let { apiTexture, tileSegments, textureZoom, center, distanceFromCenter } =
+      Object.assign({}, mapDefaultConfig, mapConfig);
+
+    this.scale = (this.config.tileUnits * Math.pow(2, textureZoom)) / 40075016;
+    console.log("scale", this.scale);
 
     let divisions = Math.log2(this.apiElevationConfig.size[0] / tileSegments);
     this.elevationZoom = textureZoom - divisions;
@@ -48,16 +48,7 @@ export default class ThreeGeo {
       divisions
     );
 
-    this.textureLoader = new THREE.TextureLoader();
-  }
-
-  getZScale() {
-    return this.scale * this.config.zScaleFactor;
-  }
-
-  async getMap() {
-    console.log("hello");
-    let { center, distanceFromCenter, textureZoom } = this.config;
+    let apiTextureConfig = urls[apiTexture];
 
     let centerTile = Utils.pointToTile(center[0], center[1], textureZoom);
     console.log("centerTile", centerTile);
@@ -73,13 +64,13 @@ export default class ThreeGeo {
       .map(([x, y, z]) => [z, x, y]);
     console.log(
       "tiles to load",
-      tiles.map((t) => Utils.array2str(t)).join("|")
+      tiles.map((t) => Utils.array2str(t))
     );
 
     const neighbours = Utils.getNeighbours(tiles);
     console.log(
       "neighbours",
-      neighbours.map((t) => Utils.array2str(t)).join("|")
+      neighbours.map((t) => Utils.array2str(t))
     );
     const elevationTiles = Utils.getElevationTiles(
       tiles.concat(neighbours),
@@ -89,7 +80,7 @@ export default class ThreeGeo {
     console.log("elevationTiles", elevationTiles);
     console.log(
       "elevationTiles",
-      elevationTiles.map((t) => Utils.array2str(t.elevationTile)).join("|")
+      elevationTiles.map((t) => Utils.array2str(t.elevationTile))
     );
 
     const elevationData = await this.elevationManager.getDataFromTiles(
@@ -102,11 +93,10 @@ export default class ThreeGeo {
       let geom = new TileGeometry(tile, this.scale * this.config.zScaleFactor);
       // geom.computeVertexNormals();
       let texture = this.textureLoader.load(
-        this.apiTextureConfig.url(
+        apiTextureConfig.url(
           ...Utils.str2array(tile.tile),
-          this.apiTextureConfig.token
-        ),
-        this.onReady
+          apiTextureConfig.token
+        )
       );
       let material = new THREE.MeshBasicMaterial({
         map: texture,
@@ -120,6 +110,10 @@ export default class ThreeGeo {
       mesh.position.set(offsetX, offsetY, 0);
       group.add(mesh);
     });
+    this.loadManager.onLoad = () => {
+      console.log("all textures loaded");
+      this.dispatchEvent({ type: "dispose" });
+    };
     return group;
   }
 }
