@@ -37,6 +37,24 @@ export default class Utils {
     return str.split("/").map((x) => parseInt(x));
   }
 
+  static pointToTileFraction(lon, lat, z) {
+    var sin = Math.sin(lat * (Math.PI / 180)),
+      z2 = Math.pow(2, z),
+      x = z2 * (lon / 360 + 0.5),
+      y = z2 * (0.5 - (0.25 * Math.log((1 + sin) / (1 - sin))) / Math.PI);
+
+    // Wrap Tile X
+    x = x % z2;
+    if (x < 0) x = x + z2;
+    return [z, x, y];
+  }
+  static pointToTile(lon, lat, z) {
+    var tile = Utils.pointToTileFraction(lon, lat, z);
+    tile[1] = Math.floor(tile[1]);
+    tile[2] = Math.floor(tile[2]);
+    return tile;
+  }
+
   // we look for the tiles directly to the right or below
   // for joins
   static getNeighbours(tiles) {

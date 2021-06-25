@@ -1,0 +1,1 @@
+body,html{margin:0;height:100%;display:flex;flex-direction:column}#app{display:block;width:100%;height:100%}#app.fixed{position:absolute;left:0;top:0;width:100%;height:100%;z-index:-1}[data-diagram]{display:inline-block;width:10rem;height:6rem;border:1px solid #000}.left{float:left;margin-right:.25em}.right{float:right;margin-left:.25em}
