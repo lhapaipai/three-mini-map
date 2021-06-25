@@ -1,6 +1,7 @@
 import { MapControls } from "three/examples/jsm/controls/OrbitControls";
 import { GUI } from "three/examples/jsm/libs/dat.gui.module";
 import Stats from "three/examples/jsm/libs/stats.module";
+import InfiniteGridHelper from "./helpers/InfiniteGridHelper";
 
 import {
   AllMaterialPropertyGUIHelper,
@@ -15,7 +16,12 @@ import "./style.css";
 import ThreeMapManager from "./src/ThreeMapManager";
 
 class App {
-  constructor(selector) {
+  constructor(selector, config) {
+    const defaultConfig = {
+      debug: false,
+    };
+
+    this.config = Object.assign({}, defaultConfig, config);
     THREE.Object3D.DefaultUp = new THREE.Vector3(0, 0, 1);
     let canvas = document.querySelector(selector);
     this.renderer = new THREE.WebGLRenderer({ canvas });
@@ -40,33 +46,49 @@ class App {
   }
 
   async initScene() {
-    // const mesh = new THREE.LineSegments(
-    //   new THREE.EdgesGeometry(new THREE.BoxGeometry(1, 1, 1)),
-    //   new THREE.LineBasicMaterial({ color: "red" })
-    // );
-    // this.scene.add(mesh);
+    const mesh = new THREE.LineSegments(
+      new THREE.EdgesGeometry(new THREE.BoxGeometry(1, 1, 1)),
+      new THREE.LineBasicMaterial({ color: "red" })
+    );
+    this.scene.add(mesh);
 
     const marignierMapConfig = {
-      apiTexture: "localIgn25",
+      textureSourceName: "localIgn25",
+      textureZoom: 15,
+      center: [6.4751, 46.1024],
+      distanceFromCenter: 14,
+    };
+    const marignierSatelliteMapConfig = {
+      textureSourceName: "localIgnSatellite",
       textureZoom: 15,
       center: [6.4751, 46.1024],
       distanceFromCenter: 14,
     };
     const combinsMapConfig = {
-      apiTexture: "localSwiss25",
+      textureSourceName: "localSwiss25",
       textureZoom: 15,
       center: [7.2545, 45.9819],
-      distanceFromCenter: 14,
+      distanceFromCenter: 4, //14,
     };
 
     const threeGeo = new ThreeMapManager({
-      apiElevation: "localElevation",
+      elevationSourceName: "localElevation",
       zScaleFactor: 1.6,
       tileUnits: 1.0,
+      debug: this.config.debug,
     });
-    threeGeo.addEventListener("dispose", this.requestRender);
-    let map = await threeGeo.getMap(marignierMapConfig);
+    threeGeo.addEventListener("dispose", () => {
+      this.requestRender();
+      this.initPath();
+    });
+    let map = await threeGeo.getMap(combinsMapConfig);
     this.scene.add(map);
+  }
+
+  async initPath() {
+    // let res = await fetch("/path/tour-des-combins-3857.json");
+    // let randoGeojson = await res.json();
+    // console.log(randoGeojson);
   }
 
   initListeners() {
@@ -92,10 +114,16 @@ class App {
   }
 
   initHelpers() {
-    // this.scene.add(new THREE.AxesHelper(1));
     // this.gui = new GUI();
-    this.stats = new Stats();
-    document.body.appendChild(this.stats.dom);
+    if (this.config.debug) {
+      this.stats = new Stats();
+      document.body.appendChild(this.stats.dom);
+
+      this.scene.add(new THREE.AxesHelper(1));
+
+      const grid = new InfiniteGridHelper(1, 5, new THREE.Color(0xaaaaaa));
+      this.scene.add(grid);
+    }
   }
 
   initLights() {
@@ -118,10 +146,12 @@ class App {
   }
 
   render() {
-    console.log("render");
+    if (this.config.debug) {
+      console.log("render");
+      this.stats.update();
+    }
     this.renderRequested = false;
     this.mapControls.update();
-    this.stats.update();
     this.renderer.render(this.scene, this.camera);
   }
 
@@ -133,4 +163,6 @@ class App {
   }
 }
 
-let app = new App("#app");
+let app = new App("#app", {
+  debug: true,
+});

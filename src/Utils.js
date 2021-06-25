@@ -75,23 +75,23 @@ export default class Utils {
     return neighbours;
   }
 
-  static getElevationTiles(tiles, textureZoom, elevationZoom) {
+  static getElevationGroups(aIdTiles, textureZoom, elevationZoom) {
     let zoomDiff = textureZoom - elevationZoom;
     const elevationsObj = {};
     const elevationsArr = [];
-    tiles.forEach((tile) => {
-      let elevationTile = [
+    aIdTiles.forEach((aIdTile) => {
+      let aIdElevationTile = [
         elevationZoom,
-        Math.floor(tile[1] / Math.pow(2, zoomDiff)),
-        Math.floor(tile[2] / Math.pow(2, zoomDiff)),
+        Math.floor(aIdTile[1] / Math.pow(2, zoomDiff)),
+        Math.floor(aIdTile[2] / Math.pow(2, zoomDiff)),
       ];
-      let elevationTileStr = Utils.array2str(elevationTile);
-      if (elevationsObj[elevationTileStr]) {
-        elevationsObj[elevationTileStr].tiles.push(tile);
+      let idElevationTile = Utils.array2str(aIdElevationTile);
+      if (elevationsObj[idElevationTile]) {
+        elevationsObj[idElevationTile].aIdTextureTiles.push(aIdTile);
       } else {
-        elevationsObj[elevationTileStr] = {
-          elevationTile: elevationTile,
-          tiles: [tile],
+        elevationsObj[idElevationTile] = {
+          aIdElevationTile,
+          aIdTextureTiles: [aIdTile],
         };
       }
     });
