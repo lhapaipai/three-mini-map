@@ -42,11 +42,11 @@ export default class ElevationManager {
     return ranges;
   }
 
-  async getDataFromTiles(elevationGroups, idNeighbours) {
+  async getDataFromElevationTiles(elevationGroups, idNeighbours) {
     let promises = elevationGroups.map(
       ({ aIdElevationTile, aIdTextureTiles: aIdTextureTiles }) => {
         return new Promise((resolv) => {
-          this.getDataFromTile(
+          this.getDataFromElevationTile(
             aIdElevationTile,
             aIdTextureTiles,
             idNeighbours,
@@ -63,6 +63,8 @@ export default class ElevationManager {
     tiles.forEach((t, i) => {
       indexById[t.id] = i;
     });
+
+    // don't use neighbours
     let requestedTiles = tiles.filter((t) => t.elevations);
 
     requestedTiles.forEach((t) => {
@@ -70,34 +72,61 @@ export default class ElevationManager {
       let south = Utils.array2str([t.aId[0], t.aId[1], t.aId[2] + 1]);
       let se = Utils.array2str([t.aId[0], t.aId[1] + 1, t.aId[2] + 1]);
       let vertices = t.segments + 1;
+
+      // add infos to east border
       for (let row = 0; row < t.segments; row++) {
         t.elevations[row * vertices + vertices - 1] =
           tiles[indexById[east]].west[row];
       }
+
+      // add infos to south border
       for (let col = 0; col < t.segments; col++) {
         t.elevations[(vertices - 1) * vertices + col] =
           tiles[indexById[south]].north[col];
       }
-      t.elevations[t.elevations.length - 1] = t.east =
-        tiles[indexById[east]].west;
+
+      // get a copy
+      t.east = tiles[indexById[east]].west;
       t.south = tiles[indexById[south]].north;
+
+      // add infos to south-east point
       if (indexById[se]) {
         t.se = tiles[indexById[se]].nw;
         t.elevations[t.elevations.length - 1] = tiles[indexById[se]].nw;
       } else {
-        // console.log("s.e. calculated");
+        // compute point
         t.se = (t.east[t.east.length - 1] + t.south[t.south.length - 1]) / 2;
         t.elevations[t.elevations.length - 1] = t.se;
       }
-      // console.log(t.aId, east, south, se);
+
+      t.min = Utils.arrayMin(t.elevations);
+      t.max = Utils.arrayMax(t.elevations);
     });
+
+    requestedTiles.forEach((t) => {
+      delete t.north;
+      delete t.south;
+      delete t.east;
+      delete t.west;
+      delete t.se;
+      delete t.nw;
+    });
+
     return requestedTiles;
   }
 
-  getDataFromTile(aIdElevationTile, aIdTextureTiles, idNeighbours, cb) {
+  getDataFromElevationTile(
+    aIdElevationTile,
+    aIdTextureTiles,
+    idNeighbours,
+    cb
+  ) {
+    // idTextureTiles contain only id that we want to retrieve data
     let idTextureTiles = aIdTextureTiles.map((t) => Utils.array2str(t));
-    // console.log("getDataFromTile", aIdElevationTile, idTextureTiles);
-    let url = this.config.url(...aIdElevationTile, this.config.token);
+    let elevationTileUrl = this.config.url(
+      ...aIdElevationTile,
+      this.config.token
+    );
 
     let idCase2tile = [];
     for (let row = 0; row < this.subDivisions; row++) {
@@ -112,23 +141,26 @@ export default class ElevationManager {
       }
     }
 
-    getPixels(url, (err, data, dimensions) => {
+    getPixels(elevationTileUrl, (err, data, dimensions) => {
       if (err) console.error(err);
-      // console.log(url, data, dimensions);
-      let elevationTiles = [];
       let counter;
-      idCase2tile.forEach((tileStr, idCase) => {
-        counter = 0;
-        // si notre tuile d'élévation ne nous intéresse pas
-        if (!idTextureTiles.includes(tileStr)) return;
+
+      let elevationTiles = [];
+      idCase2tile.forEach((idTile, idCase) => {
+        // some regions of the tile do not interest us
+        if (!idTextureTiles.includes(idTile)) return;
 
         let range = this.ranges[idCase];
         let segments = range[0][1] - range[0][0];
-        let elevationsBak = null;
         let elevations = null;
 
-        if (!idNeighbours.includes(tileStr)) {
-          elevationsBak = new Float32Array(segments * segments);
+        // get elevations data with 0 on east border and 0 on south border
+        // exemple
+        // for one row our elevation tile provide 32 pixels but our geometry
+        // contain 32 segments and 33 vertices. we affect one elevation data
+        // for the first 32nd and 0 for the 33rd.
+        if (!idNeighbours.includes(idTile)) {
+          counter = 0;
           elevations = new Float32Array((segments + 1) * (segments + 1));
           for (let row = range[1][0]; row < range[1][1]; row++) {
             for (let col = range[0][0]; col < range[0][1]; col++) {
@@ -146,9 +178,9 @@ export default class ElevationManager {
           }
         }
 
-        let north = new Float32Array(segments);
-        let west = new Float32Array(segments);
+        // create north border array
         counter = 0;
+        let north = new Float32Array(segments);
         for (let col = range[0][0]; col < range[0][1]; col++) {
           let r = data.get(range[1][0], col, 0);
           let g = data.get(range[1][0], col, 1);
@@ -156,7 +188,10 @@ export default class ElevationManager {
           north[counter] = r * 256 + g + b / 256 - 32768;
           counter++;
         }
+
+        // create west border array
         counter = 0;
+        let west = new Float32Array(segments);
         for (let row = range[1][0]; row < range[1][1]; row++) {
           let r = data.get(row, range[0][0], 0);
           let g = data.get(row, range[0][0], 1);
@@ -164,9 +199,10 @@ export default class ElevationManager {
           west[counter] = r * 256 + g + b / 256 - 32768;
           counter++;
         }
+
         elevationTiles.push({
-          id: tileStr,
-          aId: Utils.str2array(tileStr),
+          id: idTile,
+          aId: Utils.str2array(idTile),
           elevations,
           north,
           west,

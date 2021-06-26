@@ -1,17 +1,17 @@
 import { MapControls } from "three/examples/jsm/controls/OrbitControls";
 import { GUI } from "three/examples/jsm/libs/dat.gui.module";
 import Stats from "three/examples/jsm/libs/stats.module";
-import InfiniteGridHelper from "./InfiniteGridHelper";
+import InfiniteGridHelper from "./helpers/InfiniteGridHelper";
 
 import * as THREE from "three";
 import "./style.css";
-import ThreeMapManager from "./src/ThreeMapManager";
+import ThreeMapManager from "../../src/ThreeMapManager";
 
 let mapConfig = {
-  textureSourceName: "localIgn25", // localIgnSatellite
+  textureSourceName: "localIgnSatellite",
   textureZoom: 15,
-  center: [6.4751, 46.1024],
-  distanceFromCenter: 14,
+  center: [5.354811, 43.346674],
+  distanceFromCenter: 2, //20,
 };
 const debug = true;
 const dryRun = false;
@@ -45,6 +45,7 @@ class App {
     const threeGeo = new ThreeMapManager({
       debug,
       dryRun,
+      zScaleFactor: 2,
     });
 
     threeGeo.addEventListener("dispose", () => {
@@ -54,9 +55,7 @@ class App {
       this.requestRender();
     });
     this.map = await threeGeo.getMap(mapConfig);
-    if (this.map) {
-      this.scene.add(this.map);
-    }
+    this.scene.add(this.map);
   }
 
   initListeners() {
@@ -86,8 +85,9 @@ class App {
       document.body.appendChild(this.stats.dom);
 
       this.scene.add(new THREE.AxesHelper(5));
-      const grid = new InfiniteGridHelper(1, 5, new THREE.Color(0xaaaaaa));
-      this.scene.add(grid);
+
+      // const grid = new InfiniteGridHelper(1, 5, new THREE.Color(0xaaaaaa));
+      // this.scene.add(grid);
     }
   }
 
@@ -128,4 +128,4 @@ class App {
   }
 }
 
-new App("#app");
+let app = new App("#app");

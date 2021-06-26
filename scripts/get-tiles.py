@@ -52,6 +52,9 @@ def main():
     elif args.template == 'ignsatellite':
         url = "https://wxs.ign.fr/{3}/wmts?layer=ORTHOIMAGERY.ORTHOPHOTOS&style=normal&tilematrixset=PM&Service=WMTS&Request=GetTile&Version=1.0.0&Format=image/jpeg&TileMatrix={0}&TileCol={1}&TileRow={2}"
         export_path = "ign-satellite/{0}/{1}/{2}.jpg"
+    elif args.template == 'googlesatellite':
+        url = "https://mt3.google.com/vt/lyrs=s&hl=fr&x={1}&y={2}&z={0}&s=Ga"
+        export_path = "google-satellite/{0}/{1}/{2}.jpg"
     else:
         parser.error("template undefined")
 

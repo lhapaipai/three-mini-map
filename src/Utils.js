@@ -37,6 +37,36 @@ export default class Utils {
     return str.split("/").map((x) => parseInt(x));
   }
 
+  // coords epsg:3857 of the top-left of the tile
+  static tile2coords([z, x, y]) {
+    return [
+      -20037508.342789245 + (x * 40075016.68557849) / Math.pow(2, z),
+      20037508.342789245 - (y * 40075016.68557849) / Math.pow(2, z),
+    ];
+  }
+
+  static arrayMin(arr) {
+    var len = arr.length,
+      min = Infinity;
+    while (len--) {
+      if (arr[len] < min) {
+        min = arr[len];
+      }
+    }
+    return min;
+  }
+
+  static arrayMax(arr) {
+    var len = arr.length,
+      max = -Infinity;
+    while (len--) {
+      if (arr[len] > max) {
+        max = arr[len];
+      }
+    }
+    return max;
+  }
+
   static pointToTileFraction(lon, lat, z) {
     var sin = Math.sin(lat * (Math.PI / 180)),
       z2 = Math.pow(2, z),

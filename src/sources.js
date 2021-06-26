@@ -44,6 +44,10 @@ export default {
       url: (z, x, y, token) => `/tiles/swiss-25/${z}/${x}/${y}.jpeg`,
       size: 256,
     },
+    localGoogleSatellite: {
+      url: (z, x, y, token) => `/tiles/google-satellite/${z}/${x}/${y}.jpg`,
+      size: 256,
+    },
     mapboxSatellite: {
       url: (z, x, y, token) =>
         `https://api.mapbox.com/styles/v1/mapbox/satellite-v9/tiles/${z}/${x}/${y}?access_token=${token}`,
@@ -62,6 +66,11 @@ export default {
         `https://wxs.ign.fr/${token}/wmts?layer=ORTHOIMAGERY.ORTHOPHOTOS&style=normal&tilematrixset=PM&Service=WMTS&Request=GetTile&Version=1.0.0&Format=image/jpeg&TileMatrix=${z}&TileCol=${x}&TileRow=${y}`,
       size: 256,
       token: process.env.TOKEN_IGN,
+    },
+    googleSatellite: {
+      url: (z, x, y, token) =>
+        `https://mt3.google.com/vt/lyrs=s&hl=fr&x=${x}&y=${y}&z=${z}&s=Ga`,
+      size: 256,
     },
     swiss25: {
       url: (z, x, y, token) =>

@@ -1,6 +1,9 @@
-node_modules
+dist/
+node_modules/
 *.local
 
 /public/tiles
 /scripts/tiles-files
-/dist
+
+makefile
+.rsyncignore

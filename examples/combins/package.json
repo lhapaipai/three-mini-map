@@ -1,0 +1,15 @@
+{
+  "version": "0.0.0",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "serve": "vite preview"
+  },
+  "devDependencies": {
+    "rollup-plugin-dotenv": "github:lhapaipai/rollup-plugin-dotenv#v0.3.1",
+    "vite": "^2.3.8"
+  },
+  "dependencies": {
+    "three": "^0.129.0"
+  }
+}
