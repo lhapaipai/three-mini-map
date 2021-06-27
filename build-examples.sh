@@ -11,9 +11,8 @@ mkdir $DEPLOY_DIR
 for DIR in examples/*; do
   cd "$DIR" || exit
 
-  # npm run build
+  npm run build
   NAME=$(basename $DIR)
-  echo $NAME
   cp -r "dist" "../../$DEPLOY_DIR/$NAME"
   cd ../..
 done
