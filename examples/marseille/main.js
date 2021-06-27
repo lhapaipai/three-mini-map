@@ -8,7 +8,7 @@ import "./style.css";
 import ThreeMapManager from "../../src/ThreeMapManager";
 
 let mapConfig = {
-  textureSourceName: "localIgnSatellite",
+  textureSource: "localIgnSatellite",
   textureZoom: 15,
   center: [5.354811, 43.346674],
   distanceFromCenter: 2, //20,

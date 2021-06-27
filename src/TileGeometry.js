@@ -1,7 +1,11 @@
 import { BufferGeometry, Float32BufferAttribute } from "three";
 
 export default class TileGeometry extends BufferGeometry {
-  constructor({ segments, elevations, se, south, east }, zScale, minElevation) {
+  constructor(
+    { segments, elevations, se, south, east },
+    zResolution,
+    elevationOffset
+  ) {
     super();
     this.type = "TileGeometry";
     let widthSegments = segments,
@@ -45,7 +49,7 @@ export default class TileGeometry extends BufferGeometry {
         vertices.push(
           x,
           -y,
-          (elevations[elevationCounter] - minElevation) * zScale
+          elevations[elevationCounter] * zResolution - elevationOffset
         );
         elevationCounter++;
         // vertices.push(x, -y, 0);

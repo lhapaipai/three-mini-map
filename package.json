@@ -7,17 +7,20 @@
     "serve": "vite preview"
   },
   "dependencies": {
-    "@mapbox/sphericalmercator": "^1.1.0",
     "@mapbox/tile-cover": "^3.0.2",
     "@turf/destination": "^6.4.0",
     "@turf/helpers": "^6.4.0",
     "ndarray": "^1.0.19",
-    "three": "^0.129.0"
+    "three": "^0.127.0"
   },
   "main": "dist/three-map-manager.umd.js",
   "module": "dist/three-map-manager.es.js",
   "devDependencies": {
     "rollup-plugin-dotenv": "github:lhapaipai/rollup-plugin-dotenv#v0.3.1",
     "vite": "^2.3.8"
-  }
+  },
+  "workspaces": [
+    "examples/marseille",
+    "examples/combins"
+  ]
 }

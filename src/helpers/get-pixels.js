@@ -15,10 +15,6 @@ export default function getPixels(url, cb) {
     // for ndarray
     // first the height, second the width, height the rvba
     cb(null, ndarray(pixels.data, [height, width, 4]), [width, height]);
-    // cb(null, ndarray(pixels.data, [width, height, 4], [4, 4 * img.width, 1]), [
-    //   width,
-    //   height,
-    // ]);
   };
   img.onerror = function (err) {
     cb(err);

@@ -5,13 +5,13 @@ import InfiniteGridHelper from "./InfiniteGridHelper";
 
 import * as THREE from "three";
 import "./style.css";
-import ThreeMapManager from "./src/ThreeMapManager";
+import ThreeMapManager from "../../src/ThreeMapManager";
 
 let mapConfig = {
-  textureSourceName: "localIgn25", // localIgnSatellite
+  textureSource: "localIgn25", // localIgnSatellite
   textureZoom: 15,
   center: [6.4751, 46.1024],
-  distanceFromCenter: 14,
+  distanceFromCenter: 4,
 };
 const debug = true;
 const dryRun = false;
@@ -75,7 +75,7 @@ class App {
     this.scene.add(this.camera);
 
     this.mapControls = new MapControls(this.camera, this.renderer.domElement);
-    this.mapControls.maxPolarAngle = Math.PI * 0.45;
+    // this.mapControls.maxPolarAngle = Math.PI * 0.45;
     this.mapControls.enableDamping = true;
   }
 
@@ -87,6 +87,7 @@ class App {
 
       this.scene.add(new THREE.AxesHelper(5));
       const grid = new InfiniteGridHelper(1, 5, new THREE.Color(0xaaaaaa));
+
       this.scene.add(grid);
     }
   }

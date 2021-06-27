@@ -1,5 +1,5 @@
 import getPixels from "./helpers/get-pixels";
-import Utils from "./Utils";
+import * as Utils from "./helpers/utils";
 
 export default class ElevationManager {
   constructor(config, elevationZoom, textureZoom) {
@@ -104,12 +104,12 @@ export default class ElevationManager {
     });
 
     requestedTiles.forEach((t) => {
-      delete t.north;
-      delete t.south;
-      delete t.east;
-      delete t.west;
-      delete t.se;
-      delete t.nw;
+      // delete t.north;
+      // delete t.south;
+      // delete t.east;
+      // delete t.west;
+      // delete t.se;
+      // delete t.nw;
     });
 
     return requestedTiles;

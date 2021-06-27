@@ -1,9 +1,10 @@
-import Utils from "./Utils";
 import ElevationManager from "./ElevationManager";
+import BasementBuilder from "./BasementBuilder";
 import TileGeometry from "./TileGeometry";
 import cover from "@mapbox/tile-cover";
 import sources from "./sources";
 import * as THREE from "three";
+import * as Utils from "./helpers/utils";
 
 class ThreeMapManager extends THREE.EventDispatcher {
   constructor(config) {
@@ -11,8 +12,10 @@ class ThreeMapManager extends THREE.EventDispatcher {
 
     this.config = Object.assign({}, ThreeMapManager.defaultConfig, config);
 
-    this.elevationSourceConfig =
-      sources.elevation[this.config.elevationSourceName];
+    if (typeof this.config.elevationSource === "string") {
+      this.config.elevationSource =
+        sources.elevation[this.config.elevationSource];
+    }
 
     this.loadManager = new THREE.LoadingManager();
     this.textureLoader = new THREE.TextureLoader(this.loadManager);
@@ -20,7 +23,7 @@ class ThreeMapManager extends THREE.EventDispatcher {
 
   async getMap(mapConfig) {
     let {
-      textureSourceName,
+      textureSource,
       tileSegments,
       textureZoom,
       center,
@@ -28,28 +31,36 @@ class ThreeMapManager extends THREE.EventDispatcher {
     } = Object.assign({}, ThreeMapManager.mapDefaultConfig, mapConfig);
 
     // ex : - earth circumference
-    //      40075016 meters * tileResolution (0.00000002 for zoom 0) => 1 unit
+    //      40075016 meters * xyResolution (0.00000002 for zoom 0) => 1 unit
     //      - useful for computation of elevation data inside geometry
-    //      512 meters * tileResolution (0.0008176 for zoom 15) => 0.4
+    //      512 meters * xyResolution (0.0008176 for zoom 15) => 0.4
 
-    let tileResolution =
+    let xyResolution =
       (this.config.tileUnits * Math.pow(2, textureZoom)) / 40075016.68557849;
 
     let elevationZoom =
-      textureZoom - Math.log2(this.elevationSourceConfig.size / tileSegments);
-    if (elevationZoom > this.elevationSourceConfig.maxZoom) {
+      textureZoom - Math.log2(this.config.elevationSource.size / tileSegments);
+    if (elevationZoom > this.config.elevationSource.maxZoom) {
       throw new Exception(
         `elevation segments: ${tileSegments} unavailables for this zoom: ${textureZoom}, choose less segments`
       );
     }
 
     this.elevationManager = new ElevationManager(
-      this.elevationSourceConfig,
+      this.config.elevationSource,
       elevationZoom,
       textureZoom
     );
 
-    let textureSourceConfig = sources.texture[textureSourceName];
+    if (typeof textureSource === "string") {
+      textureSource = sources.texture[textureSource];
+    }
+    if (typeof textureSource === "function") {
+      textureSource = {
+        url: textureSource,
+        size: 256,
+      };
+    }
 
     const bbox = Utils.bboxFromPointAndRadius(center, distanceFromCenter);
 
@@ -61,9 +72,16 @@ class ThreeMapManager extends THREE.EventDispatcher {
       .map(([x, y, z]) => [z, x, y])
       .sort();
 
+    const bboxTiles = {
+      north: aIdTiles[0][2],
+      south: aIdTiles[aIdTiles.length - 1][2],
+      west: aIdTiles[0][1],
+      east: aIdTiles[aIdTiles.length - 1][1],
+    };
+
     let aIdOriginTile = aIdTiles[0];
 
-    let group = new THREE.Group();
+    this.objectContainer = new THREE.Group();
 
     const aIdNeighbours = Utils.getNeighbours(aIdTiles);
 
@@ -73,18 +91,104 @@ class ThreeMapManager extends THREE.EventDispatcher {
       elevationZoom
     );
 
-    if (this.config.debug) {
-      console.info(
-        `location: (${center}), origin tile: ${Utils.array2str(aIdOriginTile)}`
+    const textureTilesFullfilled =
+      await this.elevationManager.getDataFromElevationTiles(
+        elevationGroups,
+        aIdNeighbours.map((t) => Utils.array2str(t))
       );
-      console.info(`bbox: (nw: ${bbox.northWest}, se: ${bbox.southEast})`);
-      console.info(
-        `textures tiles: ${aIdTiles.length}, neighbours: ${aIdNeighbours.length}, elevationsTiles: ${elevationGroups.length}`,
-        aIdTiles.map((t) => Utils.array2str(t)),
-        aIdNeighbours.map((t) => Utils.array2str(t)),
-        elevationGroups.map((t) => Utils.array2str(t.aIdElevationTile))
-      );
+
+    let minElevation = Utils.arrayMin(textureTilesFullfilled.map((t) => t.min));
+    let maxElevation = Utils.arrayMax(textureTilesFullfilled.map((t) => t.max));
+    let zResolution = xyResolution * this.config.zScaleFactor;
+    let zOffset = minElevation * zResolution - this.config.basementHeight;
+
+    this.objectContainer.userData = {
+      mapBox: {
+        x: aIdTiles[aIdTiles.length - 1][1] - aIdOriginTile[1] + 1,
+        y: aIdTiles[aIdTiles.length - 1][2] - aIdOriginTile[2] + 1,
+        z:
+          (maxElevation - minElevation) * zResolution +
+          this.config.basementHeight,
+      },
+      zOffset,
+      origin: Utils.tile2coords(aIdOriginTile),
+      resolution: xyResolution,
+      zResolution: zResolution,
+    };
+
+    if (this.config.debug || this.config.dryRun) {
+      /* prettier-ignore */
+      this.log(center,bboxTiles,aIdOriginTile,bbox,aIdTiles,aIdNeighbours,elevationGroups,textureTilesFullfilled,minElevation,xyResolution);
     }
+
+    textureTilesFullfilled.forEach((tile) => {
+      let geom = new TileGeometry(tile, zResolution, zOffset);
+      geom.computeVertexNormals();
+      let texture = this.textureLoader.load(
+        textureSource.url(...tile.aId, textureSource.token)
+      );
+      let material = new THREE.MeshLambertMaterial({
+        // map: texture,
+        // emissive: 0x777777,
+        // wireframe: true,
+        // color: 0xcccccc,
+      });
+
+      let mesh = new THREE.Mesh(geom, material);
+      this.config.debug && mesh.add(new THREE.AxesHelper(1));
+      let offsetX = tile.aId[1] - aIdOriginTile[1];
+      let offsetY = aIdOriginTile[2] - tile.aId[2];
+      mesh.position.set(offsetX, offsetY, 0);
+      mesh.userData.id = tile.id;
+      this.objectContainer.add(mesh);
+    });
+
+    let basementMeshes = BasementBuilder.computeBasement(
+      textureTilesFullfilled,
+      bboxTiles,
+      zResolution,
+      zOffset
+    );
+    basementMeshes.forEach((m) => this.objectContainer.add(m));
+
+    this.$loader = document.getElementById("loader");
+    this.$loaderContent = document.getElementById("loader-content");
+    this.loadManager.onLoad = () => {
+      this.$loader.classList.add("hidden");
+      this.dispatchEvent({ type: "dispose" });
+    };
+    this.loadManager.onProgress = (url, itemsLoaded, itemsTotal) => {
+      this.$loaderContent.innerText = itemsLoaded + "/" + itemsTotal;
+    };
+    return this.objectContainer;
+  }
+
+  /* prettier-ignore */
+  log(center,bboxTiles, aIdOriginTile,bbox,aIdTiles,aIdNeighbours,elevationGroups,textureTilesFullfilled,minElevation,xyResolution) {
+    let objectData = this.objectContainer.userData;
+    console.info(
+      `location: (${center}), origin tile: ${Utils.array2str(aIdOriginTile)}, bbox tiles: (n:${bboxTiles.north},s:${bboxTiles.south},w:${bboxTiles.west},e:${bboxTiles.east})`
+    );
+    console.info(`bbox: (nw: ${bbox.northWest}, se: ${bbox.southEast})`);
+    console.info(
+      `textures tiles: ${aIdTiles.length}, neighbours: ${aIdNeighbours.length}, elevationsTiles: ${elevationGroups.length}`,
+      aIdTiles.map((t) => Utils.array2str(t)),
+      aIdNeighbours.map((t) => Utils.array2str(t)),
+      elevationGroups.map((t) => Utils.array2str(t.aIdElevationTile))
+    );
+    console.info(
+      `texture tiles fullfilled:`,
+      textureTilesFullfilled,
+      `min elevation: `,
+      minElevation
+    );
+    console.info(
+      `mapBBox: (${objectData.mapBox.x},${objectData.mapBox.y},${objectData.mapBox.z})`,
+      `zOffset: (${objectData.zOffset})`,
+      `origin: (${objectData.origin})`,
+      `xyResolution: ${xyResolution}`
+    );
+
     if (this.config.dryRun) {
       console.info(
         "textures tiles load\n",
@@ -99,91 +203,18 @@ class ThreeMapManager extends THREE.EventDispatcher {
           .map((t) => Utils.array2str(t.aIdElevationTile))
           .join("\n")
       );
-    }
-
-    const textureTilesFullfilled =
-      await this.elevationManager.getDataFromElevationTiles(
-        elevationGroups,
-        aIdNeighbours.map((t) => Utils.array2str(t))
-      );
-    let minElevation = Utils.arrayMin(textureTilesFullfilled.map((t) => t.min));
-    let maxElevation = Utils.arrayMax(textureTilesFullfilled.map((t) => t.max));
-    let zResolution = tileResolution * this.config.zScaleFactor;
-    group.userData.mapBox = {
-      x: aIdTiles[aIdTiles.length - 1][1] - aIdOriginTile[1] + 1,
-      y: aIdTiles[aIdTiles.length - 1][2] - aIdOriginTile[2] + 1,
-      z:
-        (maxElevation - minElevation) *
-        tileResolution *
-        this.config.zScaleFactor,
-      offsetZ: minElevation * zResolution,
-    };
-    group.userData.origin = Utils.tile2coords(aIdOriginTile);
-    group.userData.resolution = tileResolution;
-    group.userData.zResolution = zResolution;
-
-    if (this.config.debug) {
-      console.info(
-        `texture tiles fullfilled:`,
-        textureTilesFullfilled,
-        `min elevation: `,
-        minElevation
-      );
-      console.info(
-        `mapBBox: (${group.userData.mapBox.x},${group.userData.mapBox.y},${group.userData.mapBox.z})`,
-        `offsetZ: (${group.userData.mapBox.offsetZ})`,
-        `origin: (${group.userData.origin})`,
-        `tileResolution: ${tileResolution}`
-      );
-    }
-    if (this.config.dryRun) {
       return;
     }
-    textureTilesFullfilled.forEach((tile) => {
-      let geom = new TileGeometry(
-        tile,
-        tileResolution * this.config.zScaleFactor,
-        minElevation
-      );
-      // geom.computeVertexNormals();
-      let texture = this.textureLoader.load(
-        // "https://threejs.org/examples/textures/uv_grid_opengl.jpg"
-        textureSourceConfig.url(...tile.aId, textureSourceConfig.token)
-      );
-      let material = new THREE.MeshBasicMaterial({
-        map: texture,
-        // wireframe: true,
-        // color: 0xcccccc,
-      });
-
-      let mesh = new THREE.Mesh(geom, material);
-      this.config.debug && mesh.add(new THREE.AxesHelper(1));
-      let offsetX = tile.aId[1] - aIdOriginTile[1];
-      let offsetY = aIdOriginTile[2] - tile.aId[2];
-      mesh.position.set(offsetX, offsetY, 0);
-      mesh.userData.id = tile.id;
-      group.add(mesh);
-    });
-
-    this.$loader = document.getElementById("loader");
-    this.$loaderContent = document.getElementById("loader-content");
-    this.loadManager.onLoad = () => {
-      this.$loader.classList.add("hidden");
-      this.dispatchEvent({ type: "dispose" });
-    };
-    this.loadManager.onProgress = (url, itemsLoaded, itemsTotal) => {
-      this.$loaderContent.innerText = itemsLoaded + "/" + itemsTotal;
-    };
-    return group;
   }
 }
 
 ThreeMapManager.defaultConfig = {
-  elevationSourceName: "localElevation",
+  elevationSource: "localElevation",
   zScaleFactor: 1.6,
   tileUnits: 1.0,
   debug: false,
   dryRun: false,
+  basementHeight: 0.05,
 };
 
 ThreeMapManager.mapDefaultConfig = {

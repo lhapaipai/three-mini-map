@@ -12,10 +12,10 @@ import "./style.css";
 import ThreeMapManager from "../../src/ThreeMapManager";
 
 let mapConfig = {
-  textureSourceName: "localSwiss25",
+  textureSource: "localSwiss25",
   textureZoom: 15,
   center: [7.2545, 45.9314],
-  distanceFromCenter: 15, //14 //20 //18,
+  distanceFromCenter: 15, //max 20 with local tiles
 };
 const debug = true;
 const dryRun = false;
