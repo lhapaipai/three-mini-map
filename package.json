@@ -1,10 +1,11 @@
 {
-  "name": "three-map-manager",
+  "name": "three-mini-map",
   "version": "0.0.0",
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "serve": "vite preview"
+    "serve": "vite preview",
+    "build:examples": "build-examples.sh"
   },
   "dependencies": {
     "@mapbox/tile-cover": "^3.0.2",

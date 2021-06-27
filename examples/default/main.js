@@ -8,7 +8,7 @@ import "./style.css";
 import ThreeMapManager from "../../src/ThreeMapManager";
 
 let mapConfig = {
-  textureSource: "localIgn25", // localIgnSatellite
+  textureSource: "osm", //"localIgn25", // localIgnSatellite
   textureZoom: 15,
   center: [6.4751, 46.1024],
   distanceFromCenter: 4,
@@ -43,6 +43,7 @@ class App {
 
   async initScene() {
     const threeGeo = new ThreeMapManager({
+      // elevationSource: "localElevation",
       debug,
       dryRun,
     });

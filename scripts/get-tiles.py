@@ -4,7 +4,7 @@ import requests
 import os
 import errno
 
-export_dir = "../public/tiles"
+export_dir = "~/projets/map-tiles"
 
 def download_file(url, export_path):
     suffix = url.split("/")[3:]

@@ -59,13 +59,85 @@ export default class ElevationManager {
 
     // once we have all the elevation tiles loaded, we get the jointures.
     let tiles = [].concat(...data);
+
+    // don't use neighbours
+    let requestedTiles = tiles.filter((t) => t.elevations);
+    this.addSouthEastData(requestedTiles, tiles);
+    // this.joinNormals(requestedTiles, tiles);
+
+    requestedTiles.forEach((t) => {
+      // delete t.north;
+      // delete t.south;
+      // delete t.east;
+      // delete t.west;
+      // delete t.se;
+      // delete t.nw;
+    });
+
+    return requestedTiles;
+  }
+
+  joinNormals(requestedTiles) {
+    let xJoins = [];
+    let yJoins = [];
+
+    requestedTiles
+      .sort((a, b) => {
+        if (a.aId[2] === b.aId[2]) {
+          return a.aId[1] > b.aId[1];
+        } else {
+          return a.aId[2] > b.aId[2];
+        }
+      })
+      .forEach((t, index, arr) => {
+        // if we are not on the first col
+        if (t.aId[1] !== arr[0].aId[1]) {
+          xJoins.push([arr[index - 1], t]);
+        }
+      });
+    requestedTiles
+      .sort((a, b) => a.id > b.id)
+      .forEach((t, index, arr) => {
+        // if we are not on the first row
+        if (t.aId[2] !== arr[0].aId[2]) {
+          yJoins.push([arr[index - 1], t]);
+        }
+      });
+
+    let length = xJoins[0][0].segments + 1;
+
+    xJoins.forEach(([wT, eT]) => {
+      let wTn = wT.geom.attributes.normal;
+      let eTn = eT.geom.attributes.normal;
+      for (let row = 0; row < length; row++) {
+        let rowI = length * row * 3;
+        for (let b = 0; b < 3; b++) {
+          let moy =
+            (wTn.array[rowI + (length - 1) * 3 + b] + eTn.array[rowI + b]) / 2;
+          wTn.array[rowI + (length - 1) * 3 + b] = eTn.array[rowI + b] = moy;
+        }
+      }
+    });
+
+    yJoins.forEach(([nT, sT]) => {
+      let nTn = nT.geom.attributes.normal;
+      let sTn = sT.geom.attributes.normal;
+      let rowI = (length - 1) * length * 3;
+      for (let col = 0; col < length; col++) {
+        for (let b = 0; b < 3; b++) {
+          let moy =
+            (nTn.array[rowI + col * 3 + b] + sTn.array[col * 3 + b]) / 2;
+          nTn.array[rowI + col * 3 + b] = sTn.array[col * 3 + b] = moy;
+        }
+      }
+    });
+  }
+
+  addSouthEastData(requestedTiles, tiles) {
     let indexById = {};
     tiles.forEach((t, i) => {
       indexById[t.id] = i;
     });
-
-    // don't use neighbours
-    let requestedTiles = tiles.filter((t) => t.elevations);
 
     requestedTiles.forEach((t) => {
       let east = Utils.array2str([t.aId[0], t.aId[1] + 1, t.aId[2]]);
@@ -102,17 +174,6 @@ export default class ElevationManager {
       t.min = Utils.arrayMin(t.elevations);
       t.max = Utils.arrayMax(t.elevations);
     });
-
-    requestedTiles.forEach((t) => {
-      // delete t.north;
-      // delete t.south;
-      // delete t.east;
-      // delete t.west;
-      // delete t.se;
-      // delete t.nw;
-    });
-
-    return requestedTiles;
   }
 
   getDataFromElevationTile(

@@ -14,7 +14,7 @@ export default {
       maxZoom: 15,
     },
     localElevation: {
-      url: (z, x, y) => `/tiles/terrarium/${z}/${x}/${y}.png`,
+      url: (z, x, y) => `http://map-tiles.local/terrarium/${z}/${x}/${y}.png`,
       size: 256,
       maxZoom: 15,
     },
@@ -25,12 +25,14 @@ export default {
     },
   },
   texture: {
-    localOSM: (z, x, y) => `/tiles/osm/${z}/${x}/${y}.png`,
-    localIgn25: (z, x, y) => `/tiles/ign-25/${z}/${x}/${y}.jpg`,
-    localIgnSatellite: (z, x, y) => `/tiles/ign-satellite/${z}/${x}/${y}.jpg`,
-    localSwiss25: (z, x, y) => `/tiles/swiss-25/${z}/${x}/${y}.jpeg`,
+    localOSM: (z, x, y) => `http://map-tiles.local/osm/${z}/${x}/${y}.png`,
+    localIgn25: (z, x, y) => `http://map-tiles.local/ign-25/${z}/${x}/${y}.jpg`,
+    localIgnSatellite: (z, x, y) =>
+      `http://map-tiles.local/ign-satellite/${z}/${x}/${y}.jpg`,
+    localSwiss25: (z, x, y) =>
+      `http://map-tiles.local/swiss-25/${z}/${x}/${y}.jpeg`,
     localGoogleSatellite: (z, x, y) =>
-      `/tiles/google-satellite/${z}/${x}/${y}.jpg`,
+      `http://map-tiles.local/google-satellite/${z}/${x}/${y}.jpg`,
 
     osm: (z, x, y) => `https://c.tile.openstreetmap.org/${z}/${x}/${y}.png`,
     googleSatellite: (z, x, y) =>

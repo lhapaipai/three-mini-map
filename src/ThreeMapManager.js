@@ -122,19 +122,24 @@ class ThreeMapManager extends THREE.EventDispatcher {
     }
 
     textureTilesFullfilled.forEach((tile) => {
-      let geom = new TileGeometry(tile, zResolution, zOffset);
-      geom.computeVertexNormals();
+      tile.geom = new TileGeometry(tile, zResolution, zOffset);
+      tile.geom.computeVertexNormals();
+    });
+
+    this.elevationManager.joinNormals(textureTilesFullfilled);
+
+    textureTilesFullfilled.forEach((tile) => {
       let texture = this.textureLoader.load(
         textureSource.url(...tile.aId, textureSource.token)
       );
       let material = new THREE.MeshLambertMaterial({
-        // map: texture,
-        // emissive: 0x777777,
+        map: texture,
+        // emissive: 0x222222,
         // wireframe: true,
-        // color: 0xcccccc,
+        color: 0xffffff,
       });
 
-      let mesh = new THREE.Mesh(geom, material);
+      let mesh = new THREE.Mesh(tile.geom, material);
       this.config.debug && mesh.add(new THREE.AxesHelper(1));
       let offsetX = tile.aId[1] - aIdOriginTile[1];
       let offsetY = aIdOriginTile[2] - tile.aId[2];
@@ -209,7 +214,7 @@ class ThreeMapManager extends THREE.EventDispatcher {
 }
 
 ThreeMapManager.defaultConfig = {
-  elevationSource: "localElevation",
+  elevationSource: "terrarium",
   zScaleFactor: 1.6,
   tileUnits: 1.0,
   debug: false,
