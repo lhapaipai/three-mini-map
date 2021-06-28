@@ -1,5 +1,6 @@
 /examples/*/dist/
 /examples/_*
+/data/
 node_modules/
 *.local
 
@@ -10,3 +11,5 @@ makefile
 .rsyncignore
 
 .netlify-examples
+# Local Netlify folder
+.netlify

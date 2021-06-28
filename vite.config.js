@@ -6,8 +6,8 @@ export default defineConfig({
   plugins: [dotenv()],
   build: {
     lib: {
-      entry: path.resolve(__dirname, "src/ThreeMapManager"),
-      name: "ThreeMapManager",
+      entry: path.resolve(__dirname, "src/MiniMapManager"),
+      name: "MiniMapManager",
     },
     rollupOptions: {
       external: ["three"],

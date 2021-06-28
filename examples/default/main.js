@@ -5,15 +5,15 @@ import InfiniteGridHelper from "./InfiniteGridHelper";
 
 import * as THREE from "three";
 import "./style.css";
-import ThreeMapManager from "../../src/ThreeMapManager";
+import MiniMapManager from "../../src/MiniMapManager";
 
 let mapConfig = {
-  textureSource: "osm", //"localIgn25", // localIgnSatellite
+  textureSource: "osm",
   textureZoom: 15,
   center: [6.4751, 46.1024],
   distanceFromCenter: 4,
 };
-const debug = true;
+const debug = false;
 const dryRun = false;
 
 class App {
@@ -42,19 +42,18 @@ class App {
   }
 
   async initScene() {
-    const threeGeo = new ThreeMapManager({
-      // elevationSource: "localElevation",
+    const miniMapManager = new MiniMapManager({
       debug,
       dryRun,
     });
 
-    threeGeo.addEventListener("dispose", () => {
+    miniMapManager.addEventListener("dispose", () => {
       let { x, y, z } = this.map.userData.mapBox;
       this.mapControls.target.set(x / 2, -y / 2, 0);
       this.camera.position.set(x * 0.25, -y, z * 1.5);
       this.requestRender();
     });
-    this.map = await threeGeo.getMap(mapConfig);
+    this.map = await miniMapManager.getMap(mapConfig);
     if (this.map) {
       this.scene.add(this.map);
     }
@@ -76,7 +75,7 @@ class App {
     this.scene.add(this.camera);
 
     this.mapControls = new MapControls(this.camera, this.renderer.domElement);
-    // this.mapControls.maxPolarAngle = Math.PI * 0.45;
+    this.mapControls.maxPolarAngle = Math.PI * 0.45;
     this.mapControls.enableDamping = true;
   }
 

@@ -6,11 +6,11 @@ import sources from "./sources";
 import * as THREE from "three";
 import * as Utils from "./helpers/utils";
 
-class ThreeMapManager extends THREE.EventDispatcher {
+class MiniMapManager extends THREE.EventDispatcher {
   constructor(config) {
     super();
 
-    this.config = Object.assign({}, ThreeMapManager.defaultConfig, config);
+    this.config = Object.assign({}, MiniMapManager.defaultConfig, config);
 
     if (typeof this.config.elevationSource === "string") {
       this.config.elevationSource =
@@ -28,7 +28,7 @@ class ThreeMapManager extends THREE.EventDispatcher {
       textureZoom,
       center,
       distanceFromCenter,
-    } = Object.assign({}, ThreeMapManager.mapDefaultConfig, mapConfig);
+    } = Object.assign({}, MiniMapManager.mapDefaultConfig, mapConfig);
 
     // ex : - earth circumference
     //      40075016 meters * xyResolution (0.00000002 for zoom 0) => 1 unit
@@ -213,7 +213,7 @@ class ThreeMapManager extends THREE.EventDispatcher {
   }
 }
 
-ThreeMapManager.defaultConfig = {
+MiniMapManager.defaultConfig = {
   elevationSource: "terrarium",
   zScaleFactor: 1.6,
   tileUnits: 1.0,
@@ -222,12 +222,12 @@ ThreeMapManager.defaultConfig = {
   basementHeight: 0.05,
 };
 
-ThreeMapManager.mapDefaultConfig = {
-  textureSourceName: "localOSM",
+MiniMapManager.mapDefaultConfig = {
+  textureSource: "osm",
   tileSegments: 32, // doit être une puissance de 2
   textureZoom: 15,
   center: [6.4751, 46.1024],
   distanceFromCenter: 1, // distance en km
 };
 
-export default ThreeMapManager;
+export default MiniMapManager;

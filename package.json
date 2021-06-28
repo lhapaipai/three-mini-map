@@ -5,8 +5,12 @@
     "dev": "vite",
     "build": "vite build",
     "serve": "vite preview",
-    "build:examples": "bash build-examples.sh"
+    "build:examples": "bash scripts/build-examples.sh",
+    "deploy:examples": "bash scripts/deploy-examples.sh"
   },
+  "files": [
+    "dist"
+  ],
   "dependencies": {
     "@mapbox/tile-cover": "^3.0.2",
     "@turf/destination": "^6.4.0",
@@ -21,7 +25,12 @@
     "vite": "^2.3.8"
   },
   "workspaces": [
-    "examples/marseille",
-    "examples/combins"
-  ]
+    "examples/_marseille",
+    "examples/_combins",
+    "examples/default"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/lhapaipai/three-mini-map.git"
+  }
 }

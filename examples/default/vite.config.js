@@ -8,6 +8,7 @@ export default defineConfig({
     }),
   ],
   publicDir: "../../public",
+  base: "/default/",
   build: {
     chunkSizeWarningLimit: 1000,
   },
