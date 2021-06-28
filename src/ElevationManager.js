@@ -84,9 +84,9 @@ export default class ElevationManager {
     requestedTiles
       .sort((a, b) => {
         if (a.aId[2] === b.aId[2]) {
-          return a.aId[1] > b.aId[1];
+          return a.aId[1] - b.aId[1];
         } else {
-          return a.aId[2] > b.aId[2];
+          return a.aId[2] - b.aId[2];
         }
       })
       .forEach((t, index, arr) => {
@@ -96,8 +96,20 @@ export default class ElevationManager {
         }
       });
     requestedTiles
-      .sort((a, b) => a.id > b.id)
+      .sort((a, b) => {
+        if (a.aId[1] === b.aId[1]) {
+          return a.aId[2] - b.aId[2];
+        } else {
+          return a.aId[1] - b.aId[1];
+        }
+      })
       .forEach((t, index, arr) => {
+        let n, s;
+        if (index > 0) {
+          n = arr[index - 1].id;
+          s = t.id;
+        }
+
         // if we are not on the first row
         if (t.aId[2] !== arr[0].aId[2]) {
           yJoins.push([arr[index - 1], t]);
@@ -123,10 +135,10 @@ export default class ElevationManager {
       let nTn = nT.geom.attributes.normal;
       let sTn = sT.geom.attributes.normal;
       let rowI = (length - 1) * length * 3;
+      let moy;
       for (let col = 0; col < length; col++) {
         for (let b = 0; b < 3; b++) {
-          let moy =
-            (nTn.array[rowI + col * 3 + b] + sTn.array[col * 3 + b]) / 2;
+          moy = (nTn.array[rowI + col * 3 + b] + sTn.array[col * 3 + b]) / 2;
           nTn.array[rowI + col * 3 + b] = sTn.array[col * 3 + b] = moy;
         }
       }

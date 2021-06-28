@@ -22,7 +22,7 @@ export default class BasementBuilder {
       let indexes = [];
       textureTilesFullfilled
         .filter((t) => t.aId[2] === bboxTiles[orientation])
-        .sort((a, b) => a.aId[1] > b.aId[1])
+        .sort((a, b) => a.aId[1] - b.aId[1])
         .forEach((t, tileNum, tiles) => {
           let idx;
 
@@ -78,7 +78,7 @@ export default class BasementBuilder {
       let indexes = [];
       textureTilesFullfilled
         .filter((t) => t.aId[1] === bboxTiles[orientation])
-        .sort((a, b) => a.aId[2] > b.aId[2])
+        .sort((a, b) => a.aId[2] - b.aId[2])
         .forEach((t, tileNum, tiles) => {
           let idx;
 
