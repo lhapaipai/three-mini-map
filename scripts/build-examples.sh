@@ -1,4 +1,5 @@
 #!/bin/bash
+DEPLOY_DIR=.netlify-examples
 
 PWD=$(pwd)
 if [ $(basename "$PWD") = "scripts" ]; then
@@ -6,8 +7,16 @@ if [ $(basename "$PWD") = "scripts" ]; then
   exit
 fi
 
+if [ -d $DEPLOY_DIR ]; then
+  rm -rf $DEPLOY_DIR
+fi
+mkdir $DEPLOY_DIR
+
 for DIR in examples/*; do
   cd "$DIR" || exit
   npm run build
   cd ../..
+
+  NAME=$(basename $DIR)
+  cp -r "$DIR/dist" "$DEPLOY_DIR/$NAME"
 done

@@ -21,7 +21,7 @@ npm install three-mini-map
 if you want to test the library with his examples
 
 ```console
-git clone https://github.com/tentone/geo-three.git
+git clone https://github.com/lhapaipai/three-mini-map.git
 npm install
 ```
 
