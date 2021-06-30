@@ -13,8 +13,8 @@
   "dependencies": {
     "three": "^0.127.0"
   },
-  "main": "dist/three-map-manager.umd.js",
-  "module": "dist/three-map-manager.es.js",
+  "main": "dist/three-mini-map.umd.js",
+  "module": "dist/three-mini-map.es.js",
   "devDependencies": {
     "@mapbox/tile-cover": "^3.0.2",
     "@turf/destination": "^6.4.0",
