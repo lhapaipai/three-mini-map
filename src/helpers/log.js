@@ -1,6 +1,13 @@
 import * as Utils from "./utils";
 
-export function mapLog(center, tilesInfos, tilesData, elevations, resolution) {
+export function mapLog(
+  center,
+  tilesInfos,
+  tilesData,
+  elevations,
+  resolution,
+  dryRun
+) {
   // let objectData = this.objectContainer.userData;
   console.info("tilesInfos", tilesInfos);
   console.info(
@@ -20,7 +27,9 @@ export function mapLog(center, tilesInfos, tilesData, elevations, resolution) {
     `texture tiles fullfilled:`,
     tilesData,
     `min elevation: `,
-    elevations.min
+    elevations.min,
+    `max elevation: `,
+    elevations.max
   );
   console.info(
     // `mapBBox: (${objectData.mapBox.x},${objectData.mapBox.y},${objectData.mapBox.z})`,
@@ -28,22 +37,22 @@ export function mapLog(center, tilesInfos, tilesData, elevations, resolution) {
     `zOffset: (${resolution.zOffset})`,
     `xyResolution: ${resolution.xy}`
   );
-}
 
-export function dryRunLog(tilesInfos) {
-  console.info(
-    "textures tiles load\n",
-    tilesInfos.aIdFinals
-      .concat(tilesInfos.aIdNeighbours)
-      .map((t) => Utils.array2str(t))
-      .join("\n")
-  );
-  console.info(
-    "elevation tiles\n",
-    tilesInfos.elevationGroups
-      .map((t) => Utils.array2str(t.aIdElevationTile))
-      .join("\n")
-  );
+  if (dryRun) {
+    console.info(
+      "textures tiles load\n",
+      tilesInfos.aIdFinals
+        .concat(tilesInfos.aIdNeighbours)
+        .map((t) => Utils.array2str(t))
+        .join("\n")
+    );
+    console.info(
+      "elevation tiles\n",
+      tilesInfos.elevationGroups
+        .map((t) => Utils.array2str(t.aIdElevationTile))
+        .join("\n")
+    );
+  }
 }
 
 export function pathRaycastLog(coordinates) {

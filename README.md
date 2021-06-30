@@ -18,14 +18,16 @@ if you want to use this library in your three project.
 npm install three-mini-map
 ```
 
-if you want to test the library with his examples
+Examples are located in the `examples` folder. Each example has defined his own `package.json` but `npm install` is not needed. Just execute this command in the root directory. (examples share the same workspace )
+
+If you want to test a Basic Hello World, check the `examples/default`
 
 ```console
 git clone https://github.com/lhapaipai/three-mini-map.git
 npm install
+cd examples/default
+npm run dev
 ```
-
-Examples are located in the `examples` folder. Each example has defined his own `package.json` but `npm install` is not needed. Just execute this command in the root directory. (examples share the same workspace )
 
 ## Usage
 
@@ -90,14 +92,15 @@ miniMapManager.getMap(mapOptions).then((map) => {
 
 Define custom configuration in the `mapOptions` object.
 
-| Key                 | Description                                                                                             | Default Value     |
-| ------------------- | ------------------------------------------------------------------------------------------------------- | ----------------- |
-| textureSource (str) | map provider used to texture the tile.                                                                  | `"osm"`           |
-| textureSource (obj) | custom map provider                                                                                     | -                 |
+| Key                 | Description                                                  | Default Value     |
+| ------------------- | ------------------------------------------------------------ | ----------------- |
+| textureSource (str) | map provider used to texture the tile.                       | `"osm"`           |
+| textureSource (obj) | custom map provider                                          | -                 |
 | tileSegments        | nb of segments used per texture tile to build the geometry. must be a power of 2 (16, 32, 64, 128, 256) | 32                |
-| textureZoom         | zoom used to retrieve textures                                                                          | 15                |
-| center              | array containing position of the map `[lng, lat]`                                                       | [6.4751, 46.1024] |
-| radius              | distance in kilometers used to compute the bbox of your map.                                            | 1                 |
+| textureZoom         | zoom used to retrieve textures                               | 15                |
+| center              | array containing position of the map `[lng, lat]`            | [6.4751, 46.1024] |
+| radius              | distance in kilometers used to compute the bbox of your map. | 1                 |
+| material            | an object with the `name` and `options` to apply to each tile. set `map` to false if you don't want texture (or if you want to preview relief data before download big texture data.) |                   |
 
 if you want to provide your own map provider you can specify configuration in the textureSource key.
 
@@ -109,5 +112,20 @@ miniMapManager.getMap({
     size: 256,
     token: "YOUR_TOKEN",
   },
+    material: {
+        name: "MeshLambertMaterial",
+        options: {
+            map: false, // if you don't want tile texture
+            wireframe: false
+        }
+    }
 });
 ```
+
+## Issues
+
+I load two times the Three Library...
+
+because all Three.js update are minor version change from major version 0. If you do not install the same version of three as three-mini-map in your project your app will load twice three.js
+
+Check the version of Three.js installed by `three-mini-map` and install the same in your project.

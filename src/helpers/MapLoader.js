@@ -69,9 +69,11 @@ export default class MapLoader extends THREE.EventDispatcher {
     if (!ready) return;
     this.dom.classList.remove("visible");
 
-    this.dispatchEvent({
-      type: `ready`,
-    });
-    this.onReady();
+    setTimeout(() => {
+      this.dispatchEvent({
+        type: `ready`,
+      });
+      this.onReady();
+    }, 0);
   }
 }

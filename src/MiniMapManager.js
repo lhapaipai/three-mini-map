@@ -2,7 +2,7 @@ import ElevationManager from "./ElevationManager";
 import BasementBuilder from "./BasementBuilder";
 import TileGeometry from "./TileGeometry";
 import sources from "./sources";
-import { dryRunLog, mapLog } from "./helpers/log";
+import { mapLog } from "./helpers/log";
 import * as THREE from "three";
 import * as Utils from "./helpers/utils";
 import MapLoader from "./helpers/MapLoader";
@@ -28,8 +28,8 @@ class MiniMapManager extends THREE.EventDispatcher {
   }
 
   async getMap(mapConfig) {
-    let { textureSource, tileSegments, textureZoom, center, radius } =
-      this.computeMapConfig(mapConfig);
+    let { textureSource, tileSegments, textureZoom, center, radius, material } =
+      this.computeMapConfig(mapConfig, this.config);
 
     let elevationZoom =
       textureZoom - Math.log2(this.config.elevationSource.size / tileSegments);
@@ -40,7 +40,8 @@ class MiniMapManager extends THREE.EventDispatcher {
     const elevationManager = new ElevationManager(
       this.config.elevationSource,
       elevationZoom,
-      textureZoom
+      textureZoom,
+      this.config.dryRun
     );
 
     const tilesInfos = Utils.computeTextureTiles(
@@ -61,13 +62,15 @@ class MiniMapManager extends THREE.EventDispatcher {
 
     let resolution = this.computeResolution(textureZoom, elevations.min);
 
-    if (this.config.debug) {
-      mapLog(center, tilesInfos, tilesData, elevations, resolution);
-    }
-    if (this.config.dryRun) {
-      dryRunLog(tilesInfos);
-      return;
-    }
+    this.config.debug &&
+      mapLog(
+        center,
+        tilesInfos,
+        tilesData,
+        elevations,
+        resolution,
+        this.config.dryRun
+      );
 
     tilesData.forEach((tile) => {
       tile.geom = new TileGeometry(tile, resolution);
@@ -80,17 +83,22 @@ class MiniMapManager extends THREE.EventDispatcher {
     miniMap.userData = this.computeUserData(resolution, tilesInfos, elevations);
 
     tilesData.forEach((tile) => {
-      let texture = this.textureLoader.load(
-        textureSource.url(...tile.aId, textureSource.token)
-      );
-      let material = new THREE.MeshBasicMaterial({
-        map: texture,
-        // emissive: 0x222222,
-        // wireframe: true,
-        // color: 0xbbbbbb,
-      });
+      let tileMaterial;
+      if (material.options.map !== false) {
+        let texture = this.textureLoader.load(
+          textureSource.url(...tile.aId, textureSource.token)
+        );
+        tileMaterial = new THREE[material.name]({
+          ...material.options,
+          map: texture,
+        });
+      } else {
+        tileMaterial = new THREE[material.name]({
+          ...material.options,
+        });
+      }
 
-      let mesh = new THREE.Mesh(tile.geom, material);
+      let mesh = new THREE.Mesh(tile.geom, tileMaterial);
       mesh.position.set(
         tile.aId[1] - tilesInfos.aIdOrigin[1],
         tilesInfos.aIdOrigin[2] - tile.aId[2],
@@ -115,12 +123,14 @@ class MiniMapManager extends THREE.EventDispatcher {
       let pct = Math.ceil((100 * itemsLoaded) / itemsTotal);
       this.mapLoader.update("textures", pct);
     };
+
     this.mapLoader.update("geometry", true, miniMap);
+    material.options.map === false && this.loadManager.onLoad();
 
     return miniMap;
   }
 
-  computeMapConfig(mapConfig) {
+  computeMapConfig(mapConfig, managerConfig) {
     let config = Object.assign({}, MiniMapManager.mapDefaultConfig, mapConfig);
     let textureSource = config.textureSource;
 
@@ -135,6 +145,18 @@ class MiniMapManager extends THREE.EventDispatcher {
     }
 
     config.textureSource = textureSource;
+
+    if (managerConfig.dryRun) {
+      config.material = {
+        name: "MeshLambertMaterial",
+        options: {
+          emissive: 0x222222,
+          wireframe: true,
+          color: Math.random() * 0xffffff,
+          map: false,
+        },
+      };
+    }
     return config;
   }
 
@@ -189,6 +211,10 @@ MiniMapManager.mapDefaultConfig = {
   textureZoom: 15,
   center: [6.4751, 46.1024],
   radius: 1, // distance en km
+  material: {
+    name: "MeshLambertMaterial",
+    options: {},
+  },
 };
 
 export default MiniMapManager;

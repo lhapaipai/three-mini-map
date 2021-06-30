@@ -2,8 +2,9 @@ import getPixels from "./helpers/get-pixels";
 import * as Utils from "./helpers/utils";
 
 export default class ElevationManager {
-  constructor(config, elevationZoom, textureZoom) {
+  constructor(config, elevationZoom, textureZoom, dryRun) {
     this.config = config;
+    this.dryRun = dryRun;
 
     this.elevationZoom = elevationZoom;
     this.textureZoom = textureZoom;
@@ -70,7 +71,7 @@ export default class ElevationManager {
   joinNormals(requestedTiles) {
     let xJoins = [];
     let yJoins = [];
-
+    let length;
     requestedTiles
       .sort((a, b) => {
         if (a.aId[2] === b.aId[2]) {
@@ -100,33 +101,38 @@ export default class ElevationManager {
         }
       });
 
-    let length = xJoins[0][0].segments + 1;
-
-    xJoins.forEach(([wT, eT]) => {
-      let wTn = wT.geom.attributes.normal;
-      let eTn = eT.geom.attributes.normal;
-      for (let row = 0; row < length; row++) {
-        let rowI = length * row * 3;
-        for (let b = 0; b < 3; b++) {
-          let moy =
-            (wTn.array[rowI + (length - 1) * 3 + b] + eTn.array[rowI + b]) / 2;
-          wTn.array[rowI + (length - 1) * 3 + b] = eTn.array[rowI + b] = moy;
+    if (xJoins.length > 0) {
+      length = xJoins[0][0].segments + 1;
+      xJoins.forEach(([wT, eT]) => {
+        let wTn = wT.geom.attributes.normal;
+        let eTn = eT.geom.attributes.normal;
+        for (let row = 0; row < length; row++) {
+          let rowI = length * row * 3;
+          for (let b = 0; b < 3; b++) {
+            let moy =
+              (wTn.array[rowI + (length - 1) * 3 + b] + eTn.array[rowI + b]) /
+              2;
+            wTn.array[rowI + (length - 1) * 3 + b] = eTn.array[rowI + b] = moy;
+          }
         }
-      }
-    });
+      });
+    }
 
-    yJoins.forEach(([nT, sT]) => {
-      let nTn = nT.geom.attributes.normal;
-      let sTn = sT.geom.attributes.normal;
-      let rowI = (length - 1) * length * 3;
-      let moy;
-      for (let col = 0; col < length; col++) {
-        for (let b = 0; b < 3; b++) {
-          moy = (nTn.array[rowI + col * 3 + b] + sTn.array[col * 3 + b]) / 2;
-          nTn.array[rowI + col * 3 + b] = sTn.array[col * 3 + b] = moy;
+    if (yJoins.length > 0) {
+      length = yJoins[0][0].segments + 1;
+      yJoins.forEach(([nT, sT]) => {
+        let nTn = nT.geom.attributes.normal;
+        let sTn = sT.geom.attributes.normal;
+        let rowI = (length - 1) * length * 3;
+        let moy;
+        for (let col = 0; col < length; col++) {
+          for (let b = 0; b < 3; b++) {
+            moy = (nTn.array[rowI + col * 3 + b] + sTn.array[col * 3 + b]) / 2;
+            nTn.array[rowI + col * 3 + b] = sTn.array[col * 3 + b] = moy;
+          }
         }
-      }
-    });
+      });
+    }
   }
 
   addSouthEastData(requestedTiles, tiles) {
@@ -184,6 +190,11 @@ export default class ElevationManager {
       ...aIdElevationTile,
       this.config.token
     );
+
+    if (this.dryRun) {
+      const blob = Utils.b64toBlob(Utils.fakeTileElevation256, "image/png");
+      elevationTileUrl = URL.createObjectURL(blob);
+    }
 
     let idCase2tile = [];
     for (let row = 0; row < this.subDivisions; row++) {
