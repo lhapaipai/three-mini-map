@@ -1,5 +1,5 @@
 /examples/*/dist/
-/examples/_*
+/examples/private-*
 /data/
 node_modules/
 *.local

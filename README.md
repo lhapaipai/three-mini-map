@@ -27,7 +27,7 @@ npm install
 
 Examples are located in the `examples` folder. Each example has defined his own `package.json` but `npm install` is not needed. Just execute this command in the root directory. (examples share the same workspace )
 
-## API
+## Usage
 
 ```js
 import MiniMapManager from "mini-map-manager";
@@ -39,7 +39,7 @@ miniMapManager
     textureSource: "osm",
     textureZoom: 15,
     center: [6.4751, 46.1024],
-    distanceFromCenter: 4,
+    radius: 4,
   })
   .then((map) => {
     let scene = new THREE.Scene();
@@ -47,7 +47,7 @@ miniMapManager
   });
 ```
 
-## Details
+## API
 
 ### `MiniMapManager` class
 
@@ -97,7 +97,7 @@ Define custom configuration in the `mapOptions` object.
 | tileSegments        | nb of segments used per texture tile to build the geometry. must be a power of 2 (16, 32, 64, 128, 256) | 32                |
 | textureZoom         | zoom used to retrieve textures                                                                          | 15                |
 | center              | array containing position of the map `[lng, lat]`                                                       | [6.4751, 46.1024] |
-| distanceFromCenter  | distance in kilometers used to compute the bbox of your map.                                            | 1                 |
+| radius              | distance in kilometers used to compute the bbox of your map.                                            | 1                 |
 
 if you want to provide your own map provider you can specify configuration in the textureSource key.
 

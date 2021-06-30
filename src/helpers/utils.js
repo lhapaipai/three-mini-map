@@ -1,5 +1,5 @@
 import turfDestination from "@turf/destination";
-import { point } from "@turf/helpers";
+import cover from "@mapbox/tile-cover";
 
 export function bboxFromPointAndRadius(center, radius) {
   const polygon = {
@@ -11,7 +11,12 @@ export function bboxFromPointAndRadius(center, radius) {
     },
   };
 
-  let origin = point(center);
+  let origin = {
+    type: "Feature",
+    properties: {},
+    geometry: { type: "Point", coordinates: center },
+  };
+  console.log("turf point ", origin, center);
   const [w, n] = turfDestination(origin, radius, -45).geometry.coordinates;
   const [e, s] = turfDestination(origin, radius, 135).geometry.coordinates;
   polygon.geometry.coordinates[0] = [
@@ -102,6 +107,43 @@ export function getNeighbours(tiles) {
   });
 
   return neighbours;
+}
+
+export function computeTextureTiles(
+  center,
+  distanceFromCenter,
+  textureZoom,
+  elevationZoom
+) {
+  const bbox = bboxFromPointAndRadius(center, distanceFromCenter);
+
+  let aIdFinals = cover
+    .tiles(bbox.feature.geometry, {
+      min_zoom: textureZoom,
+      max_zoom: textureZoom,
+    })
+    .map(([x, y, z]) => [z, x, y])
+    .sort();
+
+  let aIdNeighbours = getNeighbours(aIdFinals);
+
+  return {
+    aIdOrigin: aIdFinals[0],
+    aIdFinals,
+    aIdNeighbours,
+    idNeighbours: aIdNeighbours.map((t) => array2str(t)),
+    bbox: {
+      north: aIdFinals[0][2],
+      south: aIdFinals[aIdFinals.length - 1][2],
+      west: aIdFinals[0][1],
+      east: aIdFinals[aIdFinals.length - 1][1],
+    },
+    elevationGroups: getElevationGroups(
+      aIdFinals.concat(aIdNeighbours),
+      textureZoom,
+      elevationZoom
+    ),
+  };
 }
 
 export function getElevationGroups(aIdTiles, textureZoom, elevationZoom) {

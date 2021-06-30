@@ -1,12 +1,7 @@
 import * as THREE from "three";
 
 export default class BasementBuilder {
-  static computeBasement(
-    textureTilesFullfilled,
-    bboxTiles,
-    zResolution,
-    zOffset
-  ) {
+  static computeBasement(tilesData, bboxTiles, resolution) {
     let basementObjs = [];
     let ySize = bboxTiles.south - bboxTiles.north + 1;
     let xSize = bboxTiles.east - bboxTiles.west + 1;
@@ -20,7 +15,7 @@ export default class BasementBuilder {
       let positions = [];
       let normals = [];
       let indexes = [];
-      textureTilesFullfilled
+      tilesData
         .filter((t) => t.aId[2] === bboxTiles[orientation])
         .sort((a, b) => a.aId[1] - b.aId[1])
         .forEach((t, tileNum, tiles) => {
@@ -29,7 +24,7 @@ export default class BasementBuilder {
           t[orientation].forEach((ele, num, arr) => {
             let x = tileNum + num / arr.length;
             idx = positions.length / 3;
-            positions.push(x, y, ele * zResolution - zOffset);
+            positions.push(x, y, ele * resolution.z - resolution.zOffset);
             positions.push(x, y, 0);
             normals.push(0, yNormal, 0, 0, yNormal, 0);
             if (tileNum === 0 && num === 0) {
@@ -45,8 +40,8 @@ export default class BasementBuilder {
             positions.push(
               tileNum + 1,
               y,
-              (orientation === "north" ? t.east[0] : t.se) * zResolution -
-                zOffset
+              (orientation === "north" ? t.east[0] : t.se) * resolution.z -
+                resolution.zOffset
             );
             positions.push(tileNum + 1, y, 0);
             normals.push(0, yNormal, 0, 0, yNormal, 0);
@@ -66,7 +61,6 @@ export default class BasementBuilder {
         new THREE.BufferAttribute(new Float32Array(normals), 3)
       );
       geom.setIndex(indexes);
-      console.log(positions, "indexes", indexes, geom.attributes.normal.array);
       let mesh = new THREE.Mesh(geom, material);
       basementObjs.push(mesh);
     });
@@ -76,7 +70,7 @@ export default class BasementBuilder {
       let positions = [];
       let normals = [];
       let indexes = [];
-      textureTilesFullfilled
+      tilesData
         .filter((t) => t.aId[1] === bboxTiles[orientation])
         .sort((a, b) => a.aId[2] - b.aId[2])
         .forEach((t, tileNum, tiles) => {
@@ -85,7 +79,7 @@ export default class BasementBuilder {
           t[orientation].forEach((ele, num, arr) => {
             let y = -tileNum - num / arr.length;
             idx = positions.length / 3;
-            positions.push(x, y, ele * zResolution - zOffset);
+            positions.push(x, y, ele * resolution.z - resolution.zOffset);
             positions.push(x, y, 0);
             normals.push(xNormal, 0, 0, xNormal, 0, 0);
             if (tileNum === 0 && num === 0) {
@@ -101,8 +95,8 @@ export default class BasementBuilder {
             positions.push(
               x,
               -tileNum - 1,
-              (orientation === "west" ? t.south[0] : t.se) * zResolution -
-                zOffset
+              (orientation === "west" ? t.south[0] : t.se) * resolution.z -
+                resolution.zOffset
             );
             positions.push(x, -tileNum - 1, 0);
             normals.push(xNormal, 0, 0, xNormal, 0, 0);
@@ -134,7 +128,6 @@ export default class BasementBuilder {
       mesh.position.set(xSize / 2, -ySize / 2, 0);
       mesh.rotation.x = Math.PI;
       basementObjs.push(mesh);
-      console.log("face", geom);
     }
     return basementObjs;
   }

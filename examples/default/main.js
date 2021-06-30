@@ -8,10 +8,11 @@ import "./style.css";
 import MiniMapManager from "../../src/MiniMapManager";
 
 let mapConfig = {
-  textureSource: "osm",
+  textureSource: "osm", // localIgnSatellite
   textureZoom: 15,
   center: [6.4751, 46.1024],
-  distanceFromCenter: 4,
+  radius: 4,
+  tileSegments: 4,
 };
 const debug = false;
 const dryRun = false;
@@ -21,6 +22,8 @@ class App {
     THREE.Object3D.DefaultUp = new THREE.Vector3(0, 0, 1);
     let canvas = document.querySelector(selector);
     this.renderer = new THREE.WebGLRenderer({ canvas });
+    this.renderer.setClearColor(0xffffff, 1);
+    this.renderer.clear(true, true, true);
 
     const pixelRatio = Math.min(window.devicePixelRatio, 2);
     this.width = canvas.clientWidth * pixelRatio;
@@ -30,28 +33,28 @@ class App {
     this.scene.background = new THREE.Color("white");
 
     this.renderRequested = false;
+    this.init();
+  }
 
+  async init() {
     this.initLights();
-    this.initCamera();
     this.initListeners();
+    this.initCamera();
 
-    this.initScene();
-
+    await this.initScene();
     this.initHelpers();
     this.updateSize();
   }
 
   async initScene() {
     const miniMapManager = new MiniMapManager({
+      elevationSource: "localElevation",
       debug,
       dryRun,
     });
 
-    miniMapManager.addEventListener("dispose", () => {
-      let { x, y, z } = this.map.userData.mapBox;
-      this.mapControls.target.set(x / 2, -y / 2, 0);
-      this.camera.position.set(x * 0.25, -y, z * 1.5);
-      this.requestRender();
+    miniMapManager.mapLoader.addEventListener("ready", () => {
+      this.updateCameraToMap(this.map.userData);
     });
     this.map = await miniMapManager.getMap(mapConfig);
     if (this.map) {
@@ -65,30 +68,39 @@ class App {
     this.render = this.render.bind(this);
 
     window.addEventListener("resize", this.updateSize);
-    this.mapControls.addEventListener("change", this.requestRender);
   }
 
   initCamera() {
     let canvas = this.renderer.domElement;
     let ratio = canvas.clientWidth / canvas.clientHeight;
     this.camera = new THREE.PerspectiveCamera(75, ratio, 0.01, 100);
+
     this.scene.add(this.camera);
 
     this.mapControls = new MapControls(this.camera, this.renderer.domElement);
+    this.mapControls.target.set(0, 0, 0);
     this.mapControls.maxPolarAngle = Math.PI * 0.45;
     this.mapControls.enableDamping = true;
+    this.mapControls.addEventListener("change", this.requestRender);
+  }
+
+  updateCameraToMap(mapData) {
+    let { x, y, z } = mapData.bbox;
+    this.camera.position.set(x * 0.25, -y, z * 1.5);
+    this.mapControls.target.set(x / 2, -y / 2, 0);
+    this.requestRender();
   }
 
   initHelpers() {
-    // this.gui = new GUI();
     if (debug) {
       this.stats = new Stats();
       document.body.appendChild(this.stats.dom);
 
       this.scene.add(new THREE.AxesHelper(5));
-      const grid = new InfiniteGridHelper(1, 5, new THREE.Color(0xaaaaaa));
 
-      this.scene.add(grid);
+      this.map.children.forEach((t) => {
+        t.add(new THREE.AxesHelper(1));
+      });
     }
   }
 

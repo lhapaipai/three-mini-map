@@ -42,9 +42,9 @@ export default class ElevationManager {
     return ranges;
   }
 
-  async getDataFromElevationTiles(elevationGroups, idNeighbours) {
+  async getDataFromElevationTiles({ elevationGroups, idNeighbours }) {
     let promises = elevationGroups.map(
-      ({ aIdElevationTile, aIdTextureTiles: aIdTextureTiles }) => {
+      ({ aIdElevationTile, aIdTextureTiles }) => {
         return new Promise((resolv) => {
           this.getDataFromElevationTile(
             aIdElevationTile,
@@ -63,16 +63,6 @@ export default class ElevationManager {
     // don't use neighbours
     let requestedTiles = tiles.filter((t) => t.elevations);
     this.addSouthEastData(requestedTiles, tiles);
-    // this.joinNormals(requestedTiles, tiles);
-
-    requestedTiles.forEach((t) => {
-      // delete t.north;
-      // delete t.south;
-      // delete t.east;
-      // delete t.west;
-      // delete t.se;
-      // delete t.nw;
-    });
 
     return requestedTiles;
   }
@@ -104,12 +94,6 @@ export default class ElevationManager {
         }
       })
       .forEach((t, index, arr) => {
-        let n, s;
-        if (index > 0) {
-          n = arr[index - 1].id;
-          s = t.id;
-        }
-
         // if we are not on the first row
         if (t.aId[2] !== arr[0].aId[2]) {
           yJoins.push([arr[index - 1], t]);

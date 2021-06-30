@@ -2,7 +2,7 @@
 DEPLOY_DIR=.netlify-examples
 
 PWD=$(pwd)
-if [ $(basename "$PWD") = "scripts" ]; then
+if [ "$(basename "$PWD")" = "scripts" ]; then
   echo "run with script from root path (where your package.json is located)"
   exit
 fi
