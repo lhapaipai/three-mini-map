@@ -1,6 +1,20 @@
 {
   "name": "three-mini-map",
   "version": "0.0.6",
+  "description": "Tile based visualization library for threejs.",
+  "keywords": [
+    "maps",
+    "tiles",
+    "three",
+    "webmapping",
+    "cartography",
+    "webgl"
+  ],
+  "author": {
+    "name": "Lhapaipai",
+    "url": "https://huguestavernier.com"
+  },
+  "homepage": "https://three-mini-map.netlify.app/default/",
   "scripts": {
     "dev": "vite",
     "build": "vite build",
