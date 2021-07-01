@@ -8,7 +8,8 @@
     "build:examples": "bash scripts/build-examples.sh"
   },
   "files": [
-    "dist"
+    "dist",
+    "src"
   ],
   "dependencies": {
     "three": "^0.127.0"

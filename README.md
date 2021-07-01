@@ -10,6 +10,11 @@ Library to display maps using `three.js`.
 
 [**Live demo**](https://three-mini-map.netlify.app/default/)
 
+<img alt="Combins" src="https://user-images.githubusercontent.com/1088155/124091028-b34a5300-da55-11eb-894a-b1fb9e4effca.jpg" width="400">
+<img alt="Combins debug" src="https://user-images.githubusercontent.com/1088155/124091077-bf361500-da55-11eb-86f9-bff74b6a7fa6.jpg" width="400">
+<img alt="Môle" src="https://user-images.githubusercontent.com/1088155/124091100-c4935f80-da55-11eb-9ac9-92c5462ca735.jpg" width="400">
+<img alt="Môle debug" src="https://user-images.githubusercontent.com/1088155/124091130-c9581380-da55-11eb-9b22-28fafdfe089c.jpg" width="400">
+
 ## Installation
 
 if you want to use this library in your three project.
@@ -92,15 +97,16 @@ miniMapManager.getMap(mapOptions).then((map) => {
 
 Define custom configuration in the `mapOptions` object.
 
-| Key                 | Description                                                  | Default Value     |
-| ------------------- | ------------------------------------------------------------ | ----------------- |
-| textureSource (str) | map provider used to texture the tile.                       | `"osm"`           |
-| textureSource (obj) | custom map provider                                          | -                 |
-| tileSegments        | nb of segments used per texture tile to build the geometry. must be a power of 2 (16, 32, 64, 128, 256) | 32                |
-| textureZoom         | zoom used to retrieve textures                               | 15                |
-| center              | array containing position of the map `[lng, lat]`            | [6.4751, 46.1024] |
-| radius              | distance in kilometers used to compute the bbox of your map. | 1                 |
+| Key                 | Description                                                                                                                                                                           | Default Value     |
+| ------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------- |
+| textureSource (str) | map provider used to texture the tile.                                                                                                                                                | `"osm"`           |
+| textureSource (obj) | custom map provider                                                                                                                                                                   | -                 |
+| tileSegments        | nb of segments used per texture tile to build the geometry. must be a power of 2 (16, 32, 64, 128, 256)                                                                               | 32                |
+| textureZoom         | zoom used to retrieve textures                                                                                                                                                        | 15                |
+| center              | array containing position of the map `[lng, lat]`                                                                                                                                     | [6.4751, 46.1024] |
+| radius              | distance in kilometers used to compute the bbox of your map.                                                                                                                          | 1                 |
 | material            | an object with the `name` and `options` to apply to each tile. set `map` to false if you don't want texture (or if you want to preview relief data before download big texture data.) |                   |
+| withTexture         | wether or not we add map texture (from textureSource) to the material                                                                                                                 | true              |
 
 if you want to provide your own map provider you can specify configuration in the textureSource key.
 
@@ -112,13 +118,12 @@ miniMapManager.getMap({
     size: 256,
     token: "YOUR_TOKEN",
   },
-    material: {
-        name: "MeshLambertMaterial",
-        options: {
-            map: false, // if you don't want tile texture
-            wireframe: false
-        }
-    }
+  material: {
+    name: "MeshLambertMaterial",
+    options: {
+      wireframe: false,
+    },
+  },
 });
 ```
 
@@ -128,4 +133,10 @@ I load two times the Three Library...
 
 because all Three.js update are minor version change from major version 0. If you do not install the same version of three as three-mini-map in your project your app will load twice three.js
 
-Check the version of Three.js installed by `three-mini-map` and install the same in your project.
+- Check the version of Three.js installed by `three-mini-map` and install the same in your project.
+  or
+- Import MiniMapManager from the sources
+
+```js
+import MiniMapManager from "three-mini-map/src/MiniMapManager";
+```

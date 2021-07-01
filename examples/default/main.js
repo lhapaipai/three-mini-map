@@ -1,18 +1,18 @@
 import { MapControls } from "three/examples/jsm/controls/OrbitControls";
-import { GUI } from "three/examples/jsm/libs/dat.gui.module";
 import Stats from "three/examples/jsm/libs/stats.module";
-import InfiniteGridHelper from "./InfiniteGridHelper";
 
 import * as THREE from "three";
 import "./style.css";
 import MiniMapManager from "../../src/MiniMapManager";
+import { mapLog } from "../../src/helpers/log";
 
 let mapConfig = {
-  textureSource: "osm", // localIgnSatellite
-  textureZoom: 15,
+  textureSource: "osm",
+  textureZoom: 13,
   center: [6.4751, 46.1024],
-  radius: 4,
-  tileSegments: 4,
+  radius: 8,
+  tileSegments: 32,
+  withTexture: true,
 };
 const debug = false;
 const dryRun = false;
@@ -33,81 +33,43 @@ class App {
     this.scene.background = new THREE.Color("white");
 
     this.renderRequested = false;
+
+    this.updateSize = this.updateSize.bind(this);
+    this.requestRender = this.requestRender.bind(this);
+    this.render = this.render.bind(this);
+
     this.init();
   }
 
   async init() {
     this.initLights();
-    this.initListeners();
     this.initCamera();
+
+    window.addEventListener("resize", this.updateSize);
+    this.updateSize();
 
     await this.initScene();
     this.initHelpers();
-    this.updateSize();
-  }
-
-  async initScene() {
-    const miniMapManager = new MiniMapManager({
-      elevationSource: "localElevation",
-      debug,
-      dryRun,
-    });
-
-    miniMapManager.mapLoader.addEventListener("ready", () => {
-      this.updateCameraToMap(this.map.userData);
-    });
-    this.map = await miniMapManager.getMap(mapConfig);
-    if (this.map) {
-      this.scene.add(this.map);
-    }
-  }
-
-  initListeners() {
-    this.updateSize = this.updateSize.bind(this);
-    this.requestRender = this.requestRender.bind(this);
-    this.render = this.render.bind(this);
-
-    window.addEventListener("resize", this.updateSize);
-  }
-
-  initCamera() {
-    let canvas = this.renderer.domElement;
-    let ratio = canvas.clientWidth / canvas.clientHeight;
-    this.camera = new THREE.PerspectiveCamera(75, ratio, 0.01, 100);
-
-    this.scene.add(this.camera);
-
-    this.mapControls = new MapControls(this.camera, this.renderer.domElement);
-    this.mapControls.target.set(0, 0, 0);
-    this.mapControls.maxPolarAngle = Math.PI * 0.45;
-    this.mapControls.enableDamping = true;
-    this.mapControls.addEventListener("change", this.requestRender);
-  }
-
-  updateCameraToMap(mapData) {
-    let { x, y, z } = mapData.bbox;
-    this.camera.position.set(x * 0.25, -y, z * 1.5);
-    this.mapControls.target.set(x / 2, -y / 2, 0);
-    this.requestRender();
-  }
-
-  initHelpers() {
-    if (debug) {
-      this.stats = new Stats();
-      document.body.appendChild(this.stats.dom);
-
-      this.scene.add(new THREE.AxesHelper(5));
-
-      this.map.children.forEach((t) => {
-        t.add(new THREE.AxesHelper(1));
-      });
-    }
   }
 
   initLights() {
     const light = new THREE.DirectionalLight(0xffffff, 1);
     light.position.set(-1, 2, 4);
     this.scene.add(light);
+  }
+
+  initCamera() {
+    let canvas = this.renderer.domElement;
+    let ratio = canvas.clientWidth / canvas.clientHeight;
+    this.camera = new THREE.PerspectiveCamera(60, ratio, 0.01, 100);
+    this.camera.position.set(5, -7, 2);
+    this.scene.add(this.camera);
+
+    this.mapControls = new MapControls(this.camera, this.renderer.domElement);
+    this.mapControls.target.set(2, -2, 0);
+    this.mapControls.maxPolarAngle = Math.PI * 0.45;
+    this.mapControls.enableDamping = true;
+    this.mapControls.addEventListener("change", this.requestRender);
   }
 
   updateSize() {
@@ -123,10 +85,40 @@ class App {
     this.render();
   }
 
+  async initScene() {
+    const miniMapManager = new MiniMapManager({
+      debug,
+      dryRun,
+    });
+
+    miniMapManager.mapLoader.addEventListener("ready", this.requestRender);
+    this.map = await miniMapManager.getMap(mapConfig);
+
+    this.scene.add(this.map);
+    if (debug) {
+      mapLog(this.map.userData, dryRun);
+    }
+  }
+
+  initHelpers() {
+    if (debug) {
+      this.stats = new Stats();
+      document.body.appendChild(this.stats.dom);
+
+      this.scene.add(new THREE.AxesHelper(5));
+
+      this.map.children.forEach((t) => {
+        if (t.geometry.type === "TileGeometry") {
+          this.scene.add(new THREE.BoxHelper(t, 0x770d9e));
+        }
+      });
+    }
+  }
+
   render() {
     if (debug) {
       console.log("render");
-      this.stats.update();
+      this.stats && this.stats.update();
     }
     this.renderRequested = false;
     this.mapControls.update();

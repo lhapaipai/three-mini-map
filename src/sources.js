@@ -6,6 +6,11 @@ export default {
       size: 256,
       maxZoom: 15,
     },
+    localTerrarium: {
+      url: (z, x, y) => `http://map-tiles.local/terrarium/${z}/${x}/${y}.png`,
+      size: 256,
+      maxZoom: 15,
+    },
     mapboxElevation: {
       url: (z, x, y, token) =>
         `https://api.mapbox.com/v4/mapbox.terrain-rgb/${z}/${x}/${y}@2x.pngraw?access_token=${token}`,
@@ -13,11 +18,7 @@ export default {
       size: 512,
       maxZoom: 15,
     },
-    localElevation: {
-      url: (z, x, y) => `http://map-tiles.local/terrarium/${z}/${x}/${y}.png`,
-      size: 256,
-      maxZoom: 15,
-    },
+
     mapboxTerrainVector: {
       url: (z, x, y, token) =>
         `https://api.mapbox.com/v4/mapbox.mapbox-terrain-v2/${z}/${x}/${y}.vector.pbf?access_token=${token}`,

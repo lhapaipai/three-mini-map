@@ -1,13 +1,6 @@
 import * as Utils from "./utils";
 
-export function mapLog(
-  center,
-  tilesInfos,
-  tilesData,
-  elevations,
-  resolution,
-  dryRun
-) {
+export function mapLog({ center, tilesInfos, elevations, resolution }, dryRun) {
   // let objectData = this.objectContainer.userData;
   console.info("tilesInfos", tilesInfos);
   console.info(
@@ -24,8 +17,8 @@ export function mapLog(
     tilesInfos.elevationGroups.map((t) => Utils.array2str(t.aIdElevationTile))
   );
   console.info(
-    `texture tiles fullfilled:`,
-    tilesData,
+    // `texture tiles fullfilled:`,
+    // tilesData,
     `min elevation: `,
     elevations.min,
     `max elevation: `,

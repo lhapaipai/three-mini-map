@@ -6,7 +6,7 @@ let translations = {
 import * as THREE from "three";
 
 export default class MapLoader extends THREE.EventDispatcher {
-  constructor(elementsName, onReady, domParent) {
+  constructor(elementsName, onReady = () => {}, domParent) {
     super();
     this.elements = {};
     this.onReady = onReady;

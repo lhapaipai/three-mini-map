@@ -2,7 +2,6 @@ import ElevationManager from "./ElevationManager";
 import BasementBuilder from "./BasementBuilder";
 import TileGeometry from "./TileGeometry";
 import sources from "./sources";
-import { mapLog } from "./helpers/log";
 import * as THREE from "three";
 import * as Utils from "./helpers/utils";
 import MapLoader from "./helpers/MapLoader";
@@ -12,7 +11,7 @@ class MiniMapManager extends THREE.EventDispatcher {
     super();
 
     if (!mapLoader) {
-      this.mapLoader = new MapLoader(["geometry", "textures"], () => {});
+      this.mapLoader = new MapLoader(["geometry", "textures"]);
     } else {
       this.mapLoader = mapLoader;
     }
@@ -27,9 +26,24 @@ class MiniMapManager extends THREE.EventDispatcher {
     }
   }
 
+  getCameraPositionFromMap(map) {
+    let { x, y, z } = map.userData.bbox;
+    return {
+      cameraPosition: [x * 0.25, -y, z * 1.5],
+      cameraTarget: [x / 2, -y / 2, 0],
+    };
+  }
+
   async getMap(mapConfig) {
-    let { textureSource, tileSegments, textureZoom, center, radius, material } =
-      this.computeMapConfig(mapConfig, this.config);
+    let {
+      textureSource,
+      tileSegments,
+      textureZoom,
+      center,
+      radius,
+      material,
+      withTexture,
+    } = this.computeMapConfig(mapConfig, this.config);
 
     let elevationZoom =
       textureZoom - Math.log2(this.config.elevationSource.size / tileSegments);
@@ -62,16 +76,6 @@ class MiniMapManager extends THREE.EventDispatcher {
 
     let resolution = this.computeResolution(textureZoom, elevations.min);
 
-    this.config.debug &&
-      mapLog(
-        center,
-        tilesInfos,
-        tilesData,
-        elevations,
-        resolution,
-        this.config.dryRun
-      );
-
     tilesData.forEach((tile) => {
       tile.geom = new TileGeometry(tile, resolution);
       tile.geom.computeVertexNormals();
@@ -80,23 +84,25 @@ class MiniMapManager extends THREE.EventDispatcher {
     elevationManager.joinNormals(tilesData);
 
     let miniMap = new THREE.Object3D();
-    miniMap.userData = this.computeUserData(resolution, tilesInfos, elevations);
+    miniMap.userData = this.computeUserData(
+      resolution,
+      tilesInfos,
+      elevations,
+      center
+    );
 
     tilesData.forEach((tile) => {
-      let tileMaterial;
-      if (material.options.map !== false) {
-        let texture = this.textureLoader.load(
+      let tileMaterial,
+        map = withTexture;
+      if (map) {
+        map = this.textureLoader.load(
           textureSource.url(...tile.aId, textureSource.token)
         );
-        tileMaterial = new THREE[material.name]({
-          ...material.options,
-          map: texture,
-        });
-      } else {
-        tileMaterial = new THREE[material.name]({
-          ...material.options,
-        });
       }
+      tileMaterial = new THREE[material.name]({
+        ...material.options,
+        map,
+      });
 
       let mesh = new THREE.Mesh(tile.geom, tileMaterial);
       mesh.position.set(
@@ -125,7 +131,7 @@ class MiniMapManager extends THREE.EventDispatcher {
     };
 
     this.mapLoader.update("geometry", true, miniMap);
-    material.options.map === false && this.loadManager.onLoad();
+    withTexture === false && this.loadManager.onLoad();
 
     return miniMap;
   }
@@ -133,7 +139,6 @@ class MiniMapManager extends THREE.EventDispatcher {
   computeMapConfig(mapConfig, managerConfig) {
     let config = Object.assign({}, MiniMapManager.mapDefaultConfig, mapConfig);
     let textureSource = config.textureSource;
-
     if (typeof textureSource === "string") {
       textureSource = sources.texture[textureSource];
     }
@@ -175,9 +180,13 @@ class MiniMapManager extends THREE.EventDispatcher {
     };
   }
 
-  computeUserData(resolution, tilesInfos, elevations) {
+  computeUserData(resolution, tilesInfos, elevations, center) {
     return {
       resolution,
+      tilesInfos,
+      elevations,
+      center,
+
       origin: Utils.tile2coords(tilesInfos.aIdOrigin),
       bbox: {
         x:
@@ -215,6 +224,7 @@ MiniMapManager.mapDefaultConfig = {
     name: "MeshLambertMaterial",
     options: {},
   },
+  withTexture: true,
 };
 
 export default MiniMapManager;
