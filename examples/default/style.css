@@ -6,6 +6,22 @@ body {
   flex-direction: column;
   /* background-image: url(/images/flower-1.jpg); */
 }
+body {
+  font-family: sans-serif;
+  font-size: 13px;
+}
+a {
+  color: #333;
+  text-decoration: underline;
+}
+a:hover {
+  color: black;
+}
+.attributions {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+}
 canvas#app {
   display: block;
   width: 100%;
@@ -26,8 +42,6 @@ canvas#app {
   display: flex;
 }
 .dialog {
-  font-family: sans-serif;
-  font-size: 13px;
   width: 120px;
   border-top: 4px solid #ffe64b;
   border-radius: 5px;

@@ -19,7 +19,8 @@
     "dev": "vite",
     "build": "vite build",
     "serve": "vite preview",
-    "build:examples": "bash scripts/build-examples.sh"
+    "build:examples": "bash scripts/build-examples.sh",
+    "deploy:netlify": "netlify deploy --prod --dir=.netlify-examples"
   },
   "files": [
     "dist",

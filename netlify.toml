@@ -1,0 +1,3 @@
+[build]
+  public = ".netlify-examples"
+  command = "npm run build:examples"

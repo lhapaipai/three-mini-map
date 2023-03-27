@@ -6,11 +6,19 @@ Library to display maps using `three.js`.
 - Smooth connexion between tiles.
 - Choose a map provider who deliver (EPSG:3857) WMTS tiles and add textures to tiles.
 
+[**Basic example : Marignier**](https://three-mini-map.netlify.app/default/)
+
+[**Example Combins tour (switzerland)**](https://three-mini-map.netlify.app/private-combins/)
+
+[**Example Grande casse (France)**](https://three-mini-map.netlify.app/private-casse/)
+
 <img alt="Three Mini Map" src="https://user-images.githubusercontent.com/1088155/123599215-a92a1980-d7f5-11eb-8b0f-dae04e0eb61f.png">
 
-[**Live demo**](https://three-mini-map.netlify.app/default/)
+<img alt="Combins" src="https://user-images.githubusercontent.com/1088155/124091028-b34a5300-da55-11eb-894a-b1fb9e4effca.jpg" width="400"><img alt="Combins debug" src="https://user-images.githubusercontent.com/1088155/124091077-bf361500-da55-11eb-86f9-bff74b6a7fa6.jpg" width="400">
 
-<img alt="Combins" src="https://user-images.githubusercontent.com/1088155/124091028-b34a5300-da55-11eb-894a-b1fb9e4effca.jpg" width="400"><img alt="Combins debug" src="https://user-images.githubusercontent.com/1088155/124091077-bf361500-da55-11eb-86f9-bff74b6a7fa6.jpg" width="400"><img alt="Môle" src="https://user-images.githubusercontent.com/1088155/124091100-c4935f80-da55-11eb-9ac9-92c5462ca735.jpg" width="400"><img alt="Môle debug" src="https://user-images.githubusercontent.com/1088155/124091130-c9581380-da55-11eb-9b22-28fafdfe089c.jpg" width="400">
+
+
+<img alt="Môle" src="https://user-images.githubusercontent.com/1088155/124091100-c4935f80-da55-11eb-9ac9-92c5462ca735.jpg" width="400"><img alt="Môle debug" src="https://user-images.githubusercontent.com/1088155/124091130-c9581380-da55-11eb-9b22-28fafdfe089c.jpg" width="400">
 
 ## Installation
 
